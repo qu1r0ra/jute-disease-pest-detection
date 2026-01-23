@@ -1,11 +1,11 @@
 import os
+
 import wandb
 from dotenv import load_dotenv
 from lightning.pytorch import Trainer
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
-from lightning.pytorch.loggers import WandbLogger
-
 from lightning.pytorch.demos.model import DemoModel
+from lightning.pytorch.loggers import WandbLogger
 
 from jute_disease.data.jute_datamodule import JuteDataModule
 from jute_disease.utils.config import BATCH_SIZE, LEARNING_RATE, NUM_EPOCHS
