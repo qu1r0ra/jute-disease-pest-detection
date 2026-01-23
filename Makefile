@@ -19,7 +19,10 @@ help:
 	@echo "  make setup-colab  - Install dependencies for Google Colab"
 
 train:
-	$(PYTHON) -m src.jute_disease.scripts.train
+	$(PYTHON) -m src.jute_disease.engines.train
+
+cli:
+	$(PYTHON) -m src.jute_disease.engines.cli
 
 lint:
 	$(PYTHON) -m ruff check src
