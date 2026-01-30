@@ -15,7 +15,8 @@ NUM_WORKERS = 4  # NOTE: Not final.
 MAX_EPOCHS = 100  # NOTE: Not final.
 LEARNING_RATE = 1e-3  # NOTE: Not final.
 PATIENCE = 5
-SEED = 42
+SEEDS = [42, 1337, 7, 1234, 99]
+DEFAULT_SEED = SEEDS[0]
 
 # Dataset Configuration
 SPLITS = {"train": 0.7, "val": 0.15, "test": 0.15}

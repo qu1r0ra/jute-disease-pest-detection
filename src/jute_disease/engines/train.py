@@ -12,13 +12,16 @@ from jute_disease.models.jute_classifier import JuteClassifier
 from jute_disease.utils.constants import (
     BATCH_SIZE,
     DATA_DIR,
+    DEFAULT_SEED,
     LEARNING_RATE,
     MAX_EPOCHS,
     PATIENCE,
 )
+from jute_disease.utils.seed import seed_everything
 
 
 def train():
+    seed_everything(DEFAULT_SEED)
     load_dotenv()
 
     api_key = os.getenv("WANDB_API_KEY")

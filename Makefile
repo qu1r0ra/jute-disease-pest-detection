@@ -25,7 +25,7 @@ setup-data:
 	./scripts/create_data_folders.sh
 
 split-data:
-	$(PYTHON) scripts/split_data.py
+	$(PYTHON) -m src.jute_disease.engines.split
 
 train:
 	$(PYTHON) -m src.jute_disease.engines.train
