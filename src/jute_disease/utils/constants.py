@@ -3,9 +3,11 @@ from pathlib import Path
 # Paths
 ROOT_DIR = Path(__file__).resolve(strict=True).parents[3]
 DATA_DIR = ROOT_DIR / "data"
+BY_CLASS_DIR = DATA_DIR / "by_class"
+ML_SPLIT_DIR = DATA_DIR / "ml_split"
 
 # Image Configuration
-IMAGE_SIZE = 1024
+IMAGE_SIZE = 640
 BATCH_SIZE = 32  # NOTE: Not final.
 NUM_WORKERS = 4  # NOTE: Not final.
 
@@ -13,12 +15,7 @@ NUM_WORKERS = 4  # NOTE: Not final.
 MAX_EPOCHS = 100  # NOTE: Not final.
 LEARNING_RATE = 1e-3  # NOTE: Not final.
 PATIENCE = 5
+SEED = 42
 
-# Dataset Classes
-CLASSES = [
-    "Diehard",
-    "Holed",
-    "Mosaic",
-    "Stem Soft Rot",
-    "Fresh",
-]
+# Dataset Configuration
+SPLITS = {"train": 0.7, "val": 0.15, "test": 0.15}

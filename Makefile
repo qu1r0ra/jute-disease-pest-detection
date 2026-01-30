@@ -11,6 +11,8 @@ endif
 
 help:
 	@echo "Available commands:"
+	@echo "  make setup-data   - Create dataset folder structure from class files"
+	@echo "  make split-data   - Split data from by_class into ml_split"
 	@echo "  make train        - Run manual training"
 	@echo "  make cli          - Run LightningCLI training"
 	@echo "  make lint         - Run linting (ruff check)"
@@ -18,6 +20,12 @@ help:
 	@echo "  make test         - Run tests"
 	@echo "  make pre-commit   - Run all pre-commit hooks"
 	@echo "  make setup-hooks  - Install pre-commit hooks"
+
+setup-data:
+	./scripts/create_data_folders.sh
+
+split-data:
+	$(PYTHON) scripts/split_data.py
 
 train:
 	$(PYTHON) -m src.jute_disease.engines.train

@@ -1,6 +1,6 @@
 Cercospora Leaf Spot
 Dieback
-Golden Mosaic
+Mosaic
 Healthy
-Holed
+General Damage
 Soft Rot
