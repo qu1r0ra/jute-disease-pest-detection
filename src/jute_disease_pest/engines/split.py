@@ -3,39 +3,43 @@ import shutil
 
 from tqdm import tqdm
 
-from jute_disease.utils.constants import (
+from jute_disease_pest.utils.constants import (
     BY_CLASS_DIR,
     DEFAULT_SEED,
+    IMAGE_EXTENSIONS,
     ML_SPLIT_DIR,
     SPLITS,
 )
-from jute_disease.utils.seed import seed_everything
+from jute_disease_pest.utils.logger import get_logger
+from jute_disease_pest.utils.seed import seed_everything
+
+logger = get_logger(__name__)
 
 
 def split_dataset():
     seed_everything(DEFAULT_SEED)
 
     if not BY_CLASS_DIR.exists():
-        print(f"Error: Source directory {BY_CLASS_DIR} does not exist.")
+        logger.error(f"Source directory {BY_CLASS_DIR} does not exist.")
         return
 
     class_folders = [f for f in BY_CLASS_DIR.iterdir() if f.is_dir()]
 
     if not class_folders:
-        print(f"Error: No class folders found in {BY_CLASS_DIR}")
+        logger.error(f"No class folders found in {BY_CLASS_DIR}")
         return
 
-    print(f"Found {len(class_folders)} classes. Starting split...")
+    logger.info(f"Found {len(class_folders)} classes. Starting split...")
 
     for class_folder in class_folders:
         class_name = class_folder.name
 
         images = []
-        for ext in ["*.jpg", "*.jpeg", "*.png", "*.JPG", "*.JPEG", "*.PNG"]:
-            images.extend(list(class_folder.glob(ext)))
+        for ext in IMAGE_EXTENSIONS:
+            images.extend(list(class_folder.glob(f"*{ext}")))
 
         if not images:
-            print(f"Warning: No images found for class '{class_name}'. Skipping.")
+            logger.warning(f"No images found for class '{class_name}'. Skipping.")
             continue
 
         random.shuffle(images)
@@ -50,7 +54,7 @@ def split_dataset():
             "test": images[val_idx:],
         }
 
-        print(f"Processing '{class_name}': {num_images} images")
+        logger.info(f"Processing '{class_name}': {num_images} images")
 
         for split, split_images in assignments.items():
             split_path = ML_SPLIT_DIR / split / class_name
@@ -59,7 +63,7 @@ def split_dataset():
             for img_path in tqdm(split_images, desc=f"  -> {split}", leave=False):
                 shutil.copy2(img_path, split_path / img_path.name)
 
-    print("\nData splitting complete!")
+    logger.info("Data splitting complete!")
 
 
 if __name__ == "__main__":

@@ -4,6 +4,10 @@ import numpy as np
 import torch
 import torch.backends.cudnn
 
+from jute_disease_pest.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 def seed_everything(seed: int):
     """
@@ -17,4 +21,4 @@ def seed_everything(seed: int):
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-    print(f"Random seed set to: {seed}")
+    logger.info(f"Random seed set to: {seed}")

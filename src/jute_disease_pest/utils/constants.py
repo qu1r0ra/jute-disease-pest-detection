@@ -5,8 +5,10 @@ ROOT_DIR = Path(__file__).resolve(strict=True).parents[3]
 DATA_DIR = ROOT_DIR / "data"
 BY_CLASS_DIR = DATA_DIR / "by_class"
 ML_SPLIT_DIR = DATA_DIR / "ml_split"
+UNLABELED_DIR = DATA_DIR / "unlabeled"
 
 # Image Configuration
+IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".JPG", ".JPEG", ".PNG")
 IMAGE_SIZE = 640
 BATCH_SIZE = 32  # NOTE: Not final.
 NUM_WORKERS = 4  # NOTE: Not final.

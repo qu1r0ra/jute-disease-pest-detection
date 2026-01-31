@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script creates the directory structure for the jute disease dataset.
+# This script creates the directory structure for the jute disease and pest dataset.
 # It explicitly creates top-level folders followed by class subfolders.
 
 # Define paths
