@@ -64,4 +64,4 @@ run-app:
 	$(PYTHON) -m src.annotator.run
 
 ingest:
-	$(PYTHON) -m src.annotator.ingest
+	$(PYTHON) -m src.annotator.utils.indexing

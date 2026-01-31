@@ -4,27 +4,9 @@ from flask import Blueprint, render_template, request, send_from_directory
 
 # from annotator.inference import predict_image
 from annotator.models import Image, db
-from jute_disease_pest.utils.constants import DATA_DIR
+from annotator.utils.common import get_classes
 
 main_bp = Blueprint("main", __name__)
-
-
-def get_classes() -> list[str]:
-    """
-    Load and combine class names from disease and pest text files.
-
-    Returns:
-        list[str]: Sorted list of unique class names.
-    """
-    disease_classes_path = DATA_DIR / "disease_classes.txt"
-    pest_classes_path = DATA_DIR / "pest_classes.txt"
-
-    classes = []
-    for path in [disease_classes_path, pest_classes_path]:
-        if path.exists():
-            with open(path) as f:
-                classes.extend([line.strip() for line in f if line.strip()])
-    return sorted(set(classes))
 
 
 @main_bp.route("/images/<int:image_id>")
