@@ -1,0 +1,10 @@
+from annotator import create_app
+from jute_disease_pest.utils.logger import get_logger
+
+logger = get_logger(__name__)
+app = create_app()
+
+if __name__ == "__main__":
+    logger.info("Starting Jute Disease and Pest Annotation Tool...")
+    logger.info("Available at http://127.0.0.1:5000")
+    app.run(debug=True, port=5000)
