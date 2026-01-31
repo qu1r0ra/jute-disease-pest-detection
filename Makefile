@@ -11,6 +11,8 @@ endif
 
 help:
 	@echo "Available commands:"
+	@echo "  make setup-data   - Create dataset folder structure from class files"
+	@echo "  make split-data   - Split data from by_class into ml_split"
 	@echo "  make train        - Run manual training"
 	@echo "  make cli          - Run LightningCLI training"
 	@echo "  make lint         - Run linting (ruff check)"
@@ -19,11 +21,17 @@ help:
 	@echo "  make pre-commit   - Run all pre-commit hooks"
 	@echo "  make setup-hooks  - Install pre-commit hooks"
 
+setup-data:
+	./scripts/create_data_folders.sh
+
+split-data:
+	$(PYTHON) -m src.jute_disease_pest.engines.split
+
 train:
-	$(PYTHON) -m src.jute_disease.engines.train
+	$(PYTHON) -m src.jute_disease_pest.engines.train
 
 cli:
-	$(PYTHON) -m src.jute_disease.engines.cli
+	$(PYTHON) -m src.jute_disease_pest.engines.cli
 
 lint:
 	$(PYTHON) -m ruff check .
@@ -41,7 +49,7 @@ test:
 	$(PYTHON) -m pytest
 
 predict:
-	$(PYTHON) -m src.jute_disease.scripts.predict
+	$(PYTHON) -m src.jute_disease_pest.scripts.predict
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
@@ -52,3 +60,9 @@ clean:
 setup-colab:
 	$(PIP) install -e .
 	$(PIP) install pytorch-lightning albumentations
+
+run-app:
+	$(PYTHON) -m src.annotator.run
+
+ingest:
+	$(PYTHON) -m src.annotator.ingest

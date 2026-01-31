@@ -1,15 +1,18 @@
 [project]
-name = "jute-disease-detection"
+name = "jute-disease-pest-detection"
 version = "0.1.0"
-description = "Add your description here"
+description = "Deep Learning Exploration for Jute Disease and Pest Detection"
 readme = "README.md"
 requires-python = "==3.11.14"
 dependencies = [
     "albumentationsx[headless]>=2.0.14",
+    "flask>=3.1.2",
+    "flask-sqlalchemy>=3.1.1",
     "ipykernel>=7.1.0",
     "lightning[pytorch-extra]>=2.6.0",
     "matplotlib>=3.10.8",
     "numpy>=2.4.1",
+    "pillow>=12.1.0",
     "pip>=25.3",
     "python-dotenv>=1.2.1",
     "scikit-learn>=1.8.0",
@@ -44,7 +47,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/jute_disease"]
+packages = ["src/jute_disease_pest"]
 
 [tool.ruff]
 exclude = [
@@ -80,7 +83,6 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "T20"]
-ignore = ["T201"]
 fixable = ["ALL"]
 unfixable = []
 
