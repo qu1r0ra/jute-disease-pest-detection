@@ -3,14 +3,15 @@ from pathlib import Path
 # Paths
 ROOT_DIR = Path(__file__).resolve(strict=True).parents[3]
 DATA_DIR = ROOT_DIR / "data"
+ML_MODELS_DIR = ROOT_DIR / "dump" / "ml_models"
 BY_CLASS_DIR = DATA_DIR / "by_class"
 ML_SPLIT_DIR = DATA_DIR / "ml_split"
 UNLABELED_DIR = DATA_DIR / "unlabeled"
 
 # Image Configuration
 IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".JPG", ".JPEG", ".PNG"]
-IMAGE_SIZE = 640
-BATCH_SIZE = 64
+IMAGE_SIZE = 256
+BATCH_SIZE = 256
 NUM_WORKERS = 4
 
 # Training Configuration
