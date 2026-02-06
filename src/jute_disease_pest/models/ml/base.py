@@ -16,7 +16,9 @@ class BaseMLModel(ABC):
         self.model = None
 
     @abstractmethod
-    def fit(self, X: np.ndarray, y: np.ndarray) -> "BaseMLModel":
+    def fit(
+        self, X: np.ndarray, y: np.ndarray, sample_weight: np.ndarray | None = None
+    ) -> "BaseMLModel":
         """Train the model."""
         pass
 
@@ -26,7 +28,7 @@ class BaseMLModel(ABC):
         pass
 
     @abstractmethod
-    def predict_probs(self, X: np.ndarray) -> np.ndarray:
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
         """Predict class probabilities for samples in X."""
         pass
 

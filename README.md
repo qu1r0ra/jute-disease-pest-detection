@@ -1,4 +1,4 @@
-# jute-disease-pest-detection <!-- omit from toc -->
+# jute-disease-detection <!-- omit from toc -->
 
 ![title](./readme/title.png)
 
@@ -7,7 +7,7 @@
 ![Year, Term, Course](https://img.shields.io/badge/AY2526--T2-CSC713M-blue)
 ![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white) ![PyTorch](https://img.shields.io/badge/PyTorch-ee4c2c?logo=pytorch&logoColor=white) ![Lightning](https://img.shields.io/badge/Lightning-792ee5?logo=lightning&logoColor=white) ![Flask](https://img.shields.io/badge/Flask-3babc3?logo=flask&logoColor=white) ![Jupyter](https://img.shields.io/badge/Jupyter-f37626?logo=jupyter&logoColor=white)
 
-An exploration of deep learning on combined jute disease and pest datasets. Created for CSC713M (Machine Learning for MSCS).
+An exploration of deep learning on merged jute leaf disease datasets. Created for CSC713M (Machine Learning for MSCS).
 
 ## Table of Contents <!-- omit from toc -->
 
@@ -38,7 +38,7 @@ To reproduce our results, you will need the following installed:
 1. Clone this repository:
 
    ```bash
-   git clone https://github.com/qu1r0ra/jute-disease-pest-detection
+   git clone https://github.com/qu1r0ra/jute-disease-detection
    ```
 
 2. Navigate to the project root and install all required dependencies:
