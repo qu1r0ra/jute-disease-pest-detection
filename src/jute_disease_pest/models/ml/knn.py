@@ -1,19 +1,19 @@
 # ruff: noqa: N803
 import numpy as np
-from sklearn.linear_model import LogisticRegression as SKLogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
 
 from jute_disease_pest.models.ml.base import BaseMLModel
 
 
-class LogisticRegression(BaseMLModel):
+class KNN(BaseMLModel):
     def __init__(self, **kwargs):
         super().__init__()
-        self.model = SKLogisticRegression(**kwargs)
+        self.model = KNeighborsClassifier(**kwargs)
 
     def fit(
         self, X: np.ndarray, y: np.ndarray, sample_weight: np.ndarray | None = None
-    ) -> "LogisticRegression":
-        self.model.fit(X, y, sample_weight=sample_weight)
+    ) -> "KNN":
+        self.model.fit(X, y)
         return self
 
     def predict(self, X: np.ndarray) -> np.ndarray:
