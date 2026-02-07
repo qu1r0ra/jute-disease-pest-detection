@@ -9,6 +9,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      WANDB_MODE: disabled
     strategy:
       matrix:
         python-version: ["3.11"]
