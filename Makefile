@@ -12,8 +12,9 @@ help:
 	@echo "Available commands:"
 	@echo "  make data         		- Initialize data (download & split)"
 	@echo "  make train-ml     		- Run all classical ML experiments"
-	@echo "  make train-dl     		- Run all deep learning experiments"
-	@echo "  make train-dl-check 	- Run all DL experiment with fast dev run"
+	@echo "  make train-dl     		- Run all DL experiments"
+	@echo "  make train-dl-check 	- Run all DL experiments with fast dev run"
+	@echo "  make train-dl-check-single MODEL=<model_name> - Run fast dev run for a single DL model"
 	@echo "  make test         		- Run all tests"
 	@echo "  make lint         		- Run linting (ruff check)"
 	@echo "  make format       		- Run formatting (ruff format)"
@@ -36,6 +37,15 @@ train-dl:
 
 train-dl-check:
 	bash scripts/train_all_dl_check.sh
+
+train-dl-check-single:
+	uv run python src/jute_disease/engines/train.py fit \
+		--config configs/$(MODEL).yaml \
+		--trainer.fast_dev_run=True \
+		--data.num_workers=2 \
+		--data.pin_memory=True \
+		--data.batch_size=32 \
+		--trainer.logger=False
 
 test:
 	uv run pytest -v -s
