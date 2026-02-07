@@ -1,5 +1,6 @@
 # ruff: noqa: N806
 import argparse
+import os
 
 import numpy as np
 from sklearn.metrics import f1_score
@@ -70,19 +71,21 @@ def train_ml():
 
     args = parser.parse_args()
     seed_everything(args.seed)
-    setup_wandb()
 
-    wandb.init(
-        entity=WANDB_ENTITY,
-        project=WANDB_PROJECT,
-        name=f"ClassicalML-{args.classifier}",
-        config={
-            "classifier": args.classifier,
-            "feature_type": args.feature_type,
-            "balanced": args.balanced,
-            "seed": args.seed,
-        },
-    )
+    if os.environ.get("WANDB_MODE") != "disabled":
+        setup_wandb()
+
+        wandb.init(
+            entity=WANDB_ENTITY,
+            project=WANDB_PROJECT,
+            name=f"ClassicalML-{args.classifier}",
+            config={
+                "classifier": args.classifier,
+                "feature_type": args.feature_type,
+                "balanced": args.balanced,
+                "seed": args.seed,
+            },
+        )
 
     if args.feature_type == "handcrafted":
         extractor = HandcraftedFeatureExtractor()
@@ -122,15 +125,16 @@ def train_ml():
     logger.info(f"Test Accuracy: {test_acc:.4f}")
     logger.info(f"Test F1 Macro: {test_f1:.4f}")
 
-    wandb.log(
-        {
-            "val_acc": acc,
-            "val_f1": f1,
-            "test_acc": test_acc,
-            "test_f1": test_f1,
-        }
-    )
-    wandb.finish()
+    if os.environ.get("WANDB_MODE") != "disabled":
+        wandb.log(
+            {
+                "val_acc": acc,
+                "val_f1": f1,
+                "test_acc": test_acc,
+                "test_f1": test_f1,
+            }
+        )
+        wandb.finish()
     model.save()
 
 
