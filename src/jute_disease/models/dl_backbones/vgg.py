@@ -11,7 +11,8 @@ class VGG(nn.Module):
             pretrained=pretrained,
             num_classes=0,
         )
-        self.out_features = self.backbone.num_features
+        # VGG-19 output is a 4096-d vector, but num_features reports 512
+        self.out_features = 4096
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.backbone(x)
