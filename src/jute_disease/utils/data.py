@@ -20,7 +20,7 @@ from jute_disease.utils.seed import seed_everything
 logger = get_logger(__name__)
 
 
-def setup_data_folders():
+def setup_jute_data_directory():
     """Create the directory structure for the jute disease dataset."""
     disease_classes_file = DATA_DIR / "disease_classes.txt"
 
@@ -41,7 +41,7 @@ def setup_data_folders():
     logger.info(f"Successfully created folders for {len(classes)} classes.")
 
 
-def split_dataset(force: bool = False):
+def split_jute_data(force: bool = False):
     """Split the jute dataset into train/val/test sets."""
     if ML_SPLIT_DIR.exists() and any(ML_SPLIT_DIR.iterdir()) and not force:
         logger.info(f"Split directory {ML_SPLIT_DIR} already exists. Skipping split.")
@@ -98,22 +98,21 @@ def split_dataset(force: bool = False):
     logger.info("Data splitting complete!")
 
 
-def prepare_plant_village(raw_dir: Path, target_dir: Path):
-    """Consolidate PlantVillage train/val splits into a single by_class directory."""
+def prepare_dataset_subsets(raw_dir: Path, target_dir: Path, subsets: list[str]):
+    """Consolidate dataset subsets into a single by_class directory."""
     if target_dir.exists() and any(target_dir.iterdir()):
         logger.info(f"Target directory {target_dir} already exists. Skipping prep.")
         return
 
-    logger.info(f"Preparing PlantVillage dataset in {target_dir}...")
+    logger.info(f"Preparing dataset in {target_dir}...")
     target_dir.mkdir(parents=True, exist_ok=True)
-
-    subsets = ["train", "val"]
 
     for subset in subsets:
         subset_path = raw_dir / subset
         if not subset_path.exists():
             logger.warning(f"Subset folder {subset_path} not found. Skipping.")
             continue
+
         class_folders = [d for d in subset_path.iterdir() if d.is_dir()]
 
         for class_folder in tqdm(class_folders, desc=f"Processing {subset}"):
@@ -122,39 +121,57 @@ def prepare_plant_village(raw_dir: Path, target_dir: Path):
             dest_class_dir.mkdir(exist_ok=True)
 
             for img_file in class_folder.iterdir():
-                # Handle potential duplicate filenames
                 if img_file.is_file():
+                    # Prefix with subset to avoid name collisions
                     dest_file = dest_class_dir / f"{subset}_{img_file.name}"
                     shutil.copy2(img_file, dest_file)
 
-    logger.info("PlantVillage preparation complete!")
+    logger.info(f"Preparation complete for {target_dir.name}!")
 
 
-def download_plant_village():
-    """Download the Plant Village dataset and prepare it."""
-    pv_data_dir = DATA_DIR / "plant_village"
+def download_and_prepare_kaggle_data(
+    dataset_name: str, kaggle_id: str, target_dirname: str, subsets: list[str]
+):
+    """Generic download and prepare function for Kaggle data."""
+    target_dir = DATA_DIR / "external" / target_dirname
 
-    if pv_data_dir.exists() and any(pv_data_dir.iterdir()):
-        # Naive check
-        if (pv_data_dir / "Apple___Apple_scab").exists():
-            logger.info("PlantVillage dataset seems ready. Skipping.")
-            return
+    if target_dir.exists() and any(target_dir.iterdir()):
+        logger.info(f"{dataset_name} seems ready. Skipping.")
+        return
 
-    logger.info("Downloading PlantVillage dataset...")
-    path = kagglehub.dataset_download("mohitsingh1804/plantvillage")
+    logger.info(f"Downloading {dataset_name}...")
+    path = kagglehub.dataset_download(kaggle_id)
     downloaded_dir = Path(path)
     logger.info(f"Downloaded to {downloaded_dir}")
 
-    raw_source = downloaded_dir / "PlantVillage"
-    prepare_plant_village(raw_source, pv_data_dir)
+    prepare_dataset_subsets(downloaded_dir, target_dir, subsets)
+
+
+def download_plant_village():
+    download_and_prepare_kaggle_data(
+        "PlantVillage",
+        "mohitsingh1804/plantvillage",
+        "plant_village",
+        ["train", "val"],
+    )
+
+
+def download_plant_doc():
+    download_and_prepare_kaggle_data(
+        "PlantDoc",
+        "nirmalsankalana/plantdoc-dataset",
+        "plantdoc",
+        ["train", "test"],
+    )
 
 
 def initialize_data():
     """Run all data initialization tasks."""
     seed_everything(DEFAULT_SEED)
-    setup_data_folders()
-    split_dataset()
+    setup_jute_data_directory()
+    split_jute_data()
     download_plant_village()
+    download_plant_doc()
 
 
 if __name__ == "__main__":
@@ -175,11 +192,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.command == "setup":
-        setup_data_folders()
+        setup_jute_data_directory()
     elif args.command == "split":
         seed_everything(DEFAULT_SEED)
-        split_dataset(force=args.force)
+        split_jute_data(force=args.force)
     elif args.command == "download":
         download_plant_village()
+        download_plant_doc()
     elif args.command == "init":
         initialize_data()
