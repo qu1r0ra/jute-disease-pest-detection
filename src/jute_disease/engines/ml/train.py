@@ -8,30 +8,31 @@ from torchvision.datasets import ImageFolder
 
 import wandb
 from jute_disease.data.transforms import ml_train_transforms, ml_val_transforms
-from jute_disease.models.ml.base import BaseMLModel
-from jute_disease.models.ml.knn import KNearestNeighbors
-from jute_disease.models.ml.logistic_regression import LogisticRegression
-from jute_disease.models.ml.naive_bayes import MultinomialNaiveBayes
-from jute_disease.models.ml.random_forest import RandomForest
-from jute_disease.models.ml.svm import SupportVectorMachine
+from jute_disease.models.ml.classifiers import (
+    KNearestNeighbors,
+    LogisticRegression,
+    MultinomialNaiveBayes,
+    RandomForest,
+    SklearnClassifier,
+    SupportVectorMachine,
+)
+from jute_disease.models.ml.features import (
+    HandcraftedFeatureExtractor,
+    RawPixelFeatureExtractor,
+    extract_features,
+)
 from jute_disease.utils.constants import (
     DEFAULT_SEED,
     ML_SPLIT_DIR,
     WANDB_ENTITY,
     WANDB_PROJECT,
 )
-from jute_disease.utils.feature_extractor import (
-    HandcraftedFeatureExtractor,
-    RawPixelFeatureExtractor,
-    extract_features,
-)
-from jute_disease.utils.logger import get_logger
+from jute_disease.utils.logger import get_logger, setup_wandb
 from jute_disease.utils.seed import seed_everything
-from jute_disease.utils.wandb_utils import setup_wandb
 
 logger = get_logger(__name__)
 
-ML_CLASSIFIERS: dict[str, BaseMLModel] = {
+ML_CLASSIFIERS: dict[str, type[SklearnClassifier]] = {
     "knn": KNearestNeighbors,
     "lr": LogisticRegression,
     "mnb": MultinomialNaiveBayes,
@@ -58,9 +59,9 @@ def train_ml():
     )
     parser.add_argument(
         "--balanced",
-        action="store_true",
+        action=argparse.BooleanOptionalAction,
         default=True,
-        help="Whether to use balanced sample weights during training",
+        help="Use balanced sample weights during training (default: True)",
     )
     parser.add_argument(
         "--seed",

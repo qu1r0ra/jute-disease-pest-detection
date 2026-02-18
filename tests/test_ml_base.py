@@ -1,7 +1,8 @@
+# ruff: noqa: N803, N806
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
 
-from jute_disease.models.ml.base import SklearnClassifier
+from jute_disease.models.ml.classifiers import SklearnClassifier
 
 
 class MockEstimator(BaseEstimator, ClassifierMixin):
@@ -18,13 +19,6 @@ class MockEstimator(BaseEstimator, ClassifierMixin):
 
     def predict_proba(self, X):
         return np.zeros((len(X), 2))
-
-
-class MockNoWeightEstimator(BaseEstimator, ClassifierMixin):
-    """Estimator that does not support sample_weight in fit."""
-
-    def fit(self, X, y):
-        return self
 
 
 def test_sklearn_classifier_adapter_passes_weight():
@@ -63,3 +57,31 @@ def test_sklearn_classifier_predict():
     y_pred = adapter.predict(X)
     assert len(y_pred) == 10
     assert isinstance(y_pred, np.ndarray)
+
+
+def test_sklearn_classifier_save_load(tmp_path, monkeypatch):
+
+    # Mock ML_MODELS_DIR to use tmp_path
+    monkeypatch.setattr("jute_disease.models.ml.classifiers.ML_MODELS_DIR", tmp_path)
+
+    X = np.random.rand(10, 2)
+    y = np.array([0, 1] * 5)
+
+    class PersistentClassifier(SklearnClassifier):
+        def __init__(self, **kwargs):
+            super().__init__(MockEstimator, **kwargs)
+
+    adapter = PersistentClassifier()
+    adapter.fit(X, y)
+    adapter.save()
+
+    # Verify file exists (lowercase class name)
+    expected_path = tmp_path / "persistentclassifier.joblib"
+    assert expected_path.exists()
+
+    # Load and verify
+    loaded = PersistentClassifier.load()
+    assert loaded is not None
+    assert isinstance(loaded.model, MockEstimator)
+    # Check if fit attributes survived
+    assert loaded.model.sample_weight_passed is None
