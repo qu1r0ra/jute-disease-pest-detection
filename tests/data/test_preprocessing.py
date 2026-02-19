@@ -3,13 +3,13 @@ import pytest
 import torch
 from PIL import Image
 
-from jute_disease.data.transforms import (
+from jute_disease.data import (
     dl_train_transforms,
     dl_val_transforms,
     ml_train_transforms,
     ml_val_transforms,
 )
-from jute_disease.utils.constants import IMAGE_SIZE
+from jute_disease.utils import IMAGE_SIZE
 
 
 @pytest.fixture

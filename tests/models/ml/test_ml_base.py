@@ -2,7 +2,7 @@
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
 
-from jute_disease.models.ml.classifiers import SklearnClassifier
+from jute_disease.models.ml import SklearnClassifier
 
 
 class MockEstimator(BaseEstimator, ClassifierMixin):
@@ -60,9 +60,9 @@ def test_sklearn_classifier_predict():
 
 
 def test_sklearn_classifier_save_load(tmp_path, monkeypatch):
+    from jute_disease.models.ml import classifiers
 
-    # Mock ML_MODELS_DIR to use tmp_path
-    monkeypatch.setattr("jute_disease.models.ml.classifiers.ML_MODELS_DIR", tmp_path)
+    monkeypatch.setattr(classifiers, "ML_MODELS_DIR", tmp_path)
 
     X = np.random.rand(10, 2)
     y = np.array([0, 1] * 5)

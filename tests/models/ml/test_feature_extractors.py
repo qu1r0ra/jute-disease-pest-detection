@@ -2,11 +2,8 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from jute_disease.models.ml.features import (
-    HandcraftedFeatureExtractor,
-    RawPixelFeatureExtractor,
-)
-from jute_disease.utils.constants import IMAGE_SIZE
+from jute_disease.models.ml import HandcraftedFeatureExtractor, RawPixelFeatureExtractor
+from jute_disease.utils import IMAGE_SIZE
 
 
 @pytest.fixture
@@ -41,6 +38,7 @@ def test_raw_pixel_extractor_pil(sample_pil_image):
     assert features.shape == (IMAGE_SIZE * IMAGE_SIZE * 3,)
 
 
+@pytest.mark.slow
 def test_handcrafted_extractor_numpy(sample_numpy_image):
     """Test HandcraftedFeatureExtractor with numpy input."""
     extractor = HandcraftedFeatureExtractor()
@@ -51,6 +49,7 @@ def test_handcrafted_extractor_numpy(sample_numpy_image):
     assert features.dtype == np.float32
 
 
+@pytest.mark.slow
 def test_handcrafted_extractor_pil(sample_pil_image):
     """Test HandcraftedFeatureExtractor with PIL input."""
     extractor = HandcraftedFeatureExtractor()
