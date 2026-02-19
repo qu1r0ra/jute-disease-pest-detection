@@ -12,7 +12,6 @@ def test_root_package_exposes_subpackages():
 def test_data_api():
     from jute_disease.data import (
         DataModule,
-        PretrainDataModule,
         dl_train_transforms,
         dl_val_transforms,
         ml_train_transforms,
@@ -20,7 +19,6 @@ def test_data_api():
     )
 
     assert DataModule is not None
-    assert PretrainDataModule is not None
     assert dl_train_transforms is not None
     assert dl_val_transforms is not None
     assert ml_train_transforms is not None
