@@ -30,6 +30,7 @@ def test_datamodule_setup_fit(mock_dataset_root):
     assert len(dm.jute_train) == 10  # 2 classes * 5 images
     assert len(dm.jute_val) == 10
     assert dm.classes == ["diseased", "healthy"]
+    assert dm.num_classes == 2
 
 
 def test_datamodule_setup_test(mock_dataset_root):
@@ -55,13 +56,29 @@ def test_datamodule_dataloaders(mock_dataset_root):
 
 
 def test_datamodule_kfold_setup(mock_dataset_root):
-    # K-fold setup uses only the 'train' folder for both train and val
+    # K-fold setup now merges 'train' and 'val' subfolders
+    # Total samples = 10 (train) + 10 (val) = 20
+    # 5 folds -> 16 training, 4 validation
     dm = DataModule(data_dir=mock_dataset_root, batch_size=2, k_fold=5, fold_index=0)
     dm.setup(stage="fit")
 
-    # 10 samples total, 5 folds -> 8 training, 2 validation
-    assert len(dm.jute_train) == 8
-    assert len(dm.jute_val) == 2
+    assert len(dm.jute_train) == 16
+    assert len(dm.jute_val) == 4
+    assert dm.num_classes == 2
+
+
+def test_datamodule_set_fold(mock_dataset_root):
+    """Test that set_fold switches the active subsets and indices."""
+    dm = DataModule(data_dir=mock_dataset_root, k_fold=5, fold_index=0)
+    dm.setup(stage="fit")
+
+    idx0 = dm.jute_train.indices.copy()
+    dm.set_fold(1)
+    idx1 = dm.jute_train.indices.copy()
+
+    assert not np.array_equal(idx0, idx1)
+    assert dm.hparams.fold_index == 1
+    assert len(dm.jute_train) == 16
 
 
 def test_datamodule_weighted_sampler(mock_dataset_root):
@@ -75,3 +92,24 @@ def test_datamodule_weighted_sampler(mock_dataset_root):
 
     assert dm.sampler is not None
     assert len(dm.sampler) == 15  # 5 + 10
+
+
+def test_datamodule_random_split(tmp_path):
+    """Test standard random splitting when subfolders are missing."""
+    data_dir = tmp_path / "external_data"
+    for cls in ["apple", "banana", "cherry"]:
+        cls_dir = data_dir / cls
+        cls_dir.mkdir(parents=True)
+        for i in range(10):
+            img = Image.fromarray(
+                np.random.randint(0, 256, (32, 32, 3), dtype=np.uint8)
+            )
+            img.save(cls_dir / f"img_{i}.jpg")
+
+    # 30 images total, 20% val -> 24 train, 6 val
+    dm = DataModule(data_dir=data_dir, val_split=0.2, batch_size=2)
+    dm.setup(stage="fit")
+
+    assert dm.num_classes == 3
+    assert len(dm.jute_train) == 24
+    assert len(dm.jute_val) == 6
