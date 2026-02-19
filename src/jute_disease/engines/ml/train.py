@@ -7,28 +7,27 @@ from sklearn.metrics import f1_score
 from torchvision.datasets import ImageFolder
 
 import wandb
-from jute_disease.data.transforms import ml_train_transforms, ml_val_transforms
-from jute_disease.models.ml.classifiers import (
+from jute_disease.data import ml_train_transforms, ml_val_transforms
+from jute_disease.models.ml import (
+    HandcraftedFeatureExtractor,
     KNearestNeighbors,
     LogisticRegression,
     MultinomialNaiveBayes,
     RandomForest,
+    RawPixelFeatureExtractor,
     SklearnClassifier,
     SupportVectorMachine,
-)
-from jute_disease.models.ml.features import (
-    HandcraftedFeatureExtractor,
-    RawPixelFeatureExtractor,
     extract_features,
 )
-from jute_disease.utils.constants import (
+from jute_disease.utils import (
     DEFAULT_SEED,
     ML_SPLIT_DIR,
     WANDB_ENTITY,
     WANDB_PROJECT,
+    get_logger,
+    seed_everything,
+    setup_wandb,
 )
-from jute_disease.utils.logger import get_logger, setup_wandb
-from jute_disease.utils.seed import seed_everything
 
 logger = get_logger(__name__)
 
