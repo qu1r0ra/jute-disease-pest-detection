@@ -1,6 +1,8 @@
 """Unit tests for extract_features() end-to-end pipeline."""
 
 # ruff: noqa: N803, N806
+from pathlib import Path
+
 import numpy as np
 import pytest
 from PIL import Image
@@ -15,7 +17,7 @@ from jute_disease.utils import IMAGE_SIZE
 
 
 @pytest.fixture
-def mock_image_folder(tmp_path):
+def mock_image_folder(tmp_path: Path) -> ImageFolder:
     """Build a minimal on-disk ImageFolder with 2 classes, 3 images each."""
     for cls in ["healthy", "diseased"]:
         cls_dir = tmp_path / cls
@@ -28,7 +30,7 @@ def mock_image_folder(tmp_path):
     return ImageFolder(root=str(tmp_path))
 
 
-def test_raw_pixel_extract_features_shape(mock_image_folder):
+def test_raw_pixel_extract_features_shape(mock_image_folder: ImageFolder) -> None:
     extractor = RawPixelFeatureExtractor(img_size=IMAGE_SIZE)
     X, y = extract_features(mock_image_folder, extractor)
 
@@ -38,7 +40,7 @@ def test_raw_pixel_extract_features_shape(mock_image_folder):
 
 
 @pytest.mark.slow
-def test_handcrafted_extract_features_shape(mock_image_folder):
+def test_handcrafted_extract_features_shape(mock_image_folder: ImageFolder) -> None:
     extractor = HandcraftedFeatureExtractor()
     X, y = extract_features(mock_image_folder, extractor)
 
@@ -48,7 +50,7 @@ def test_handcrafted_extract_features_shape(mock_image_folder):
     assert y.shape == (6,)
 
 
-def test_extract_features_label_alignment(mock_image_folder):
+def test_extract_features_label_alignment(mock_image_folder: ImageFolder) -> None:
     """Labels must align with the class ordering from ImageFolder."""
     extractor = RawPixelFeatureExtractor(img_size=IMAGE_SIZE)
     X, y = extract_features(mock_image_folder, extractor)

@@ -1,27 +1,32 @@
 # ruff: noqa: N803, N806
+from pathlib import Path
+
 import numpy as np
+import pytest
 from sklearn.base import BaseEstimator, ClassifierMixin
 
 from jute_disease.models.ml import SklearnClassifier
 
 
 class MockEstimator(BaseEstimator, ClassifierMixin):
-    def __init__(self, check_sample_weight=False):
+    def __init__(self, check_sample_weight: bool = False) -> None:
         self.check_sample_weight = check_sample_weight
-        self.sample_weight_passed = None
+        self.sample_weight_passed: np.ndarray | None = None
 
-    def fit(self, X, y, sample_weight=None):
+    def fit(
+        self, X: np.ndarray, y: np.ndarray, sample_weight: np.ndarray | None = None
+    ) -> "MockEstimator":
         self.sample_weight_passed = sample_weight
         return self
 
-    def predict(self, X):
+    def predict(self, X: np.ndarray) -> np.ndarray:
         return np.zeros(len(X))
 
-    def predict_proba(self, X):
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
         return np.zeros((len(X), 2))
 
 
-def test_sklearn_classifier_adapter_passes_weight():
+def test_sklearn_classifier_adapter_passes_weight() -> None:
     X = np.random.rand(10, 2)
     y = np.array([0, 1] * 5)
     sw = np.random.rand(10)
@@ -29,11 +34,12 @@ def test_sklearn_classifier_adapter_passes_weight():
     adapter = SklearnClassifier(MockEstimator)
     adapter.fit(X, y, sample_weight=sw)
 
+    assert isinstance(adapter.model, MockEstimator)
     assert adapter.model.sample_weight_passed is not None
     assert np.array_equal(adapter.model.sample_weight_passed, sw)
 
 
-def test_sklearn_classifier_warns_no_weight(caplog):
+def test_sklearn_classifier_warns_no_weight(caplog: pytest.LogCaptureFixture) -> None:
     X = np.random.rand(10, 2)
     y = np.array([0, 1] * 5)
     sw = np.random.rand(10)
@@ -46,10 +52,11 @@ def test_sklearn_classifier_warns_no_weight(caplog):
     adapter.fit(X, y, sample_weight=sw)
 
     assert "does not support sample_weight" in caplog.text
+    assert isinstance(adapter.model, MockEstimator)
     assert adapter.model.sample_weight_passed is None
 
 
-def test_sklearn_classifier_predict():
+def test_sklearn_classifier_predict() -> None:
     X = np.random.rand(10, 2)
     adapter = SklearnClassifier(MockEstimator)
     adapter.model = MockEstimator()
@@ -59,7 +66,9 @@ def test_sklearn_classifier_predict():
     assert isinstance(y_pred, np.ndarray)
 
 
-def test_sklearn_classifier_save_load(tmp_path, monkeypatch):
+def test_sklearn_classifier_save_load(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     from jute_disease.models.ml import classifiers
 
     monkeypatch.setattr(classifiers, "ML_MODELS_DIR", tmp_path)
@@ -68,7 +77,7 @@ def test_sklearn_classifier_save_load(tmp_path, monkeypatch):
     y = np.array([0, 1] * 5)
 
     class PersistentClassifier(SklearnClassifier):
-        def __init__(self, **kwargs):
+        def __init__(self, **kwargs: object) -> None:
             super().__init__(MockEstimator, **kwargs)
 
     adapter = PersistentClassifier()

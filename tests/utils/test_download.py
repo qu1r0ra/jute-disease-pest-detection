@@ -1,9 +1,13 @@
 """Unit tests for dataset download and preparation utilities."""
 
+from pathlib import Path
+
+import pytest
+
 from jute_disease.utils.download import prepare_dataset_subsets
 
 
-def test_prepare_dataset_subsets(tmp_path):
+def test_prepare_dataset_subsets(tmp_path: Path) -> None:
     """Test consolidating subsets into by_class directory."""
     raw_dir = tmp_path / "raw"
     target_dir = tmp_path / "target"
@@ -21,7 +25,9 @@ def test_prepare_dataset_subsets(tmp_path):
     assert (target_dir / "apple" / "val_img1.jpg").exists()
 
 
-def test_prepare_dataset_subsets_skips_if_exists(tmp_path, caplog):
+def test_prepare_dataset_subsets_skips_if_exists(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
     """Test preparation skips if target directory already exists and is not empty."""
     import logging
 
@@ -38,7 +44,9 @@ def test_prepare_dataset_subsets_skips_if_exists(tmp_path, caplog):
     assert "already exists" in caplog.text
 
 
-def test_prepare_dataset_subsets_missing_folder(tmp_path, caplog):
+def test_prepare_dataset_subsets_missing_folder(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
     """Test preparation logs warning if subset folder is missing."""
     import logging
 

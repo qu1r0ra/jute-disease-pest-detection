@@ -1,7 +1,7 @@
 """Validate the public __init__ API surface for each package."""
 
 
-def test_root_package_exposes_subpackages():
+def test_root_package_exposes_subpackages() -> None:
     from jute_disease import data, models, utils
 
     assert data is not None
@@ -9,10 +9,9 @@ def test_root_package_exposes_subpackages():
     assert utils is not None
 
 
-def test_data_api():
+def test_data_api() -> None:
     from jute_disease.data import (
         DataModule,
-        PretrainDataModule,
         dl_train_transforms,
         dl_val_transforms,
         ml_train_transforms,
@@ -20,14 +19,13 @@ def test_data_api():
     )
 
     assert DataModule is not None
-    assert PretrainDataModule is not None
     assert dl_train_transforms is not None
     assert dl_val_transforms is not None
     assert ml_train_transforms is not None
     assert ml_val_transforms is not None
 
 
-def test_models_dl_api():
+def test_models_dl_api() -> None:
     from jute_disease.models.dl import Classifier, MobileViT, TimmBackbone
 
     assert Classifier is not None
@@ -35,7 +33,7 @@ def test_models_dl_api():
     assert TimmBackbone is not None
 
 
-def test_models_ml_api():
+def test_models_ml_api() -> None:
     from jute_disease.models.ml import (
         BaseFeatureExtractor,
         HandcraftedFeatureExtractor,
@@ -61,7 +59,7 @@ def test_models_ml_api():
     assert extract_features is not None
 
 
-def test_utils_api():
+def test_utils_api() -> None:
     from jute_disease.utils import (
         BATCH_SIZE,
         DATA_DIR,

@@ -2,17 +2,18 @@
 
 import pytest
 import torch
+import torch.nn as nn
 
 from jute_disease.models.dl import Classifier, TimmBackbone
 
 
 @pytest.fixture
-def backbone():
+def backbone() -> TimmBackbone:
     return TimmBackbone(model_name="resnet18", pretrained=False)
 
 
 @pytest.fixture
-def classifier(backbone):
+def classifier(backbone: TimmBackbone) -> Classifier:
     return Classifier(
         feature_extractor=backbone,
         num_classes=6,
@@ -22,23 +23,21 @@ def classifier(backbone):
     )
 
 
-def test_classifier_requires_out_features():
+def test_classifier_requires_out_features() -> None:
     """Classifier must reject a feature extractor without out_features."""
-    import torch.nn as nn
-
     # nn.Identity has no out_features attribute
     bad_extractor = nn.Identity()
     with pytest.raises(ValueError, match="out_features"):
         Classifier(feature_extractor=bad_extractor)
 
 
-def test_classifier_forward(classifier):
+def test_classifier_forward(classifier: Classifier) -> None:
     x = torch.randn(4, 3, 224, 224)
     logits = classifier(x)
     assert logits.shape == (4, 6)
 
 
-def test_classifier_frozen_backbone(backbone):
+def test_classifier_frozen_backbone(backbone: TimmBackbone) -> None:
     """Backbone parameters must be frozen when freeze_backbone=True."""
     model = Classifier(
         feature_extractor=backbone,
@@ -50,7 +49,7 @@ def test_classifier_frozen_backbone(backbone):
         assert not param.requires_grad
 
 
-def test_classifier_unfrozen_backbone(backbone):
+def test_classifier_unfrozen_backbone(backbone: TimmBackbone) -> None:
     """Backbone parameters must be trainable when freeze_backbone=False."""
     model = Classifier(
         feature_extractor=backbone,
@@ -61,14 +60,14 @@ def test_classifier_unfrozen_backbone(backbone):
     assert any(p.requires_grad for p in model.feature_extractor.parameters())
 
 
-def test_classifier_configure_optimizers(classifier):
+def test_classifier_configure_optimizers(classifier: Classifier) -> None:
     optimizers = classifier.configure_optimizers()
     assert "optimizer" in optimizers
     assert "lr_scheduler" in optimizers
 
 
 @pytest.mark.slow
-def test_classifier_training_step(classifier):
+def test_classifier_training_step(classifier: Classifier) -> None:
     batch = (torch.randn(4, 3, 224, 224), torch.randint(0, 6, (4,)))
     loss = classifier.training_step(batch, 0)
     assert loss is not None
@@ -76,14 +75,14 @@ def test_classifier_training_step(classifier):
 
 
 @pytest.mark.slow
-def test_classifier_validation_step(classifier):
+def test_classifier_validation_step(classifier: Classifier) -> None:
     batch = (torch.randn(4, 3, 224, 224), torch.randint(0, 6, (4,)))
     loss = classifier.validation_step(batch, 0)
     assert loss is not None
 
 
 @pytest.mark.slow
-def test_classifier_test_step(classifier):
+def test_classifier_test_step(classifier: Classifier) -> None:
     batch = (torch.randn(4, 3, 224, 224), torch.randint(0, 6, (4,)))
     loss = classifier.test_step(batch, 0)
     assert loss is not None

@@ -1,9 +1,13 @@
 """Unit tests for data_utils: directory setup and train/val/test splitting."""
 
+from pathlib import Path
+
+import pytest
+
 from jute_disease.utils import data_utils
 
 
-def test_setup_data_directory(tmp_path, monkeypatch):
+def test_setup_data_directory(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     data_dir = tmp_path / "data"
     data_dir.mkdir()
     by_class_dir = data_dir / "by_class"
@@ -23,7 +27,9 @@ def test_setup_data_directory(tmp_path, monkeypatch):
     assert (ml_split_dir / "val" / "class2").exists()
 
 
-def test_setup_data_directory_missing_classes_file(tmp_path, monkeypatch, caplog):
+def test_setup_data_directory_missing_classes_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
     """Missing disease_classes.txt must log an error and not crash."""
     data_dir = tmp_path / "data"
     data_dir.mkdir()
@@ -37,7 +43,9 @@ def test_setup_data_directory_missing_classes_file(tmp_path, monkeypatch, caplog
     assert "not found" in caplog.text
 
 
-def _make_split_fixture(tmp_path, monkeypatch, n_images=4):
+def _make_split_fixture(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, n_images: int = 4
+) -> Path:
     data_dir = tmp_path / "data"
     data_dir.mkdir()
     by_class_dir = data_dir / "by_class"
@@ -56,7 +64,7 @@ def _make_split_fixture(tmp_path, monkeypatch, n_images=4):
     return ml_split_dir
 
 
-def test_split_data(tmp_path, monkeypatch):
+def test_split_data(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     ml_split_dir = _make_split_fixture(tmp_path, monkeypatch)
 
     data_utils.split_data()
@@ -66,7 +74,9 @@ def test_split_data(tmp_path, monkeypatch):
     assert len(list((ml_split_dir / "test" / "class1").glob("*.jpg"))) == 1
 
 
-def test_split_data_skips_if_exists(tmp_path, monkeypatch, caplog):
+def test_split_data_skips_if_exists(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
     """split_data must be a no-op if the split dir already has content."""
     import logging
 
@@ -81,7 +91,9 @@ def test_split_data_skips_if_exists(tmp_path, monkeypatch, caplog):
     assert "Skipping" in caplog.text
 
 
-def test_split_data_force_overwrites(tmp_path, monkeypatch):
+def test_split_data_force_overwrites(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """force=True must delete and re-create the split directory."""
     ml_split_dir = _make_split_fixture(tmp_path, monkeypatch)
 

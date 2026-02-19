@@ -3,27 +3,27 @@ from pathlib import Path
 from shutil import copyfile
 
 import torch
-from lightning.pytorch import Trainer, seed_everything
+from lightning.pytorch import Trainer
 from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
 
-from jute_disease.data import PretrainDataModule
+from jute_disease.data import DataModule
 from jute_disease.models.dl import Classifier, MobileViT
-from jute_disease.utils import get_logger
+from jute_disease.utils import get_logger, seed_everything
 
 logger = get_logger(__name__)
 
 
 def train_pretext_task(
-    data_dir,
-    output_path,
-    pretrained=True,
-    base_backbone_weights=None,
-    epochs=50,
-    batch_size=32,
-    lr=0.001,
-    seed=42,
-):
+    data_dir: Path | str,
+    output_path: Path | str,
+    pretrained: bool = True,
+    base_backbone_weights: dict[str, torch.Tensor] | None = None,
+    epochs: int = 50,
+    batch_size: int = 32,
+    lr: float = 0.001,
+    seed: int = 42,
+) -> None:
     """
     Trains MobileViT on a given dataset and saves the checkpoint.
     """
@@ -31,7 +31,7 @@ def train_pretext_task(
 
     # 1. Setup Data
     logger.info(f"Initializing DataModule for {data_dir}...")
-    dm = PretrainDataModule(data_dir=data_dir, batch_size=batch_size, seed=seed)
+    dm = DataModule(data_dir=data_dir, val_split=0.2, batch_size=batch_size, seed=seed)
     dm.setup()
 
     num_classes = dm.num_classes
@@ -85,12 +85,15 @@ def train_pretext_task(
     trainer.fit(model, datamodule=dm)
 
     # 6. Save Best
-    best_path = trainer.checkpoint_callback.best_model_path
+    if isinstance(trainer.checkpoint_callback, ModelCheckpoint):
+        best_path = trainer.checkpoint_callback.best_model_path
+    else:
+        best_path = None
     if best_path:
         logger.info(f"Best model saved at: {best_path}")
         target_path = Path(output_path)
         target_path.parent.mkdir(parents=True, exist_ok=True)
-        copyfile(best_path, output_path)
+        copyfile(best_path, str(target_path))
         logger.info(f"Copied best model to target path: {output_path}")
     else:
         logger.error("Training failed or no checkpoint saved.")
@@ -118,12 +121,12 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    backbone_weights = None
+    backbone_weights: dict[str, torch.Tensor] | None = None
 
     if args.base_weights:
         logger.info(f"Extracting backbone weights from {args.base_weights}...")
         checkpoint = torch.load(args.base_weights, map_location="cpu")
-        state_dict = checkpoint["state_dict"]
+        state_dict: dict[str, torch.Tensor] = checkpoint["state_dict"]
 
         backbone_dict = {}
         for k, v in state_dict.items():
@@ -140,7 +143,7 @@ if __name__ == "__main__":
     train_pretext_task(
         data_dir=args.data_dir,
         output_path=args.output_path,
-        pretrained=True,  # Always init with ImageNet first structure-wise
+        pretrained=True,
         base_backbone_weights=backbone_weights,
         epochs=args.epochs,
         batch_size=args.batch_size,
