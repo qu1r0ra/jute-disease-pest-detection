@@ -21,7 +21,7 @@ from jute_disease.utils import (
 )
 
 
-def test_paths_are_path_objects():
+def test_paths_are_path_objects() -> None:
     for p in [
         ROOT_DIR,
         DATA_DIR,
@@ -33,41 +33,41 @@ def test_paths_are_path_objects():
         assert isinstance(p, Path), f"{p!r} is not a Path"
 
 
-def test_root_dir_is_project_root():
+def test_root_dir_is_project_root() -> None:
     """ROOT_DIR must be the repo root (contains pyproject.toml)."""
     assert (ROOT_DIR / "pyproject.toml").exists()
 
 
-def test_paths_are_nested_under_root():
+def test_paths_are_nested_under_root() -> None:
     assert str(DATA_DIR).startswith(str(ROOT_DIR))
     assert str(ML_MODELS_DIR).startswith(str(ROOT_DIR))
 
 
-def test_splits_sum_to_one():
+def test_splits_sum_to_one() -> None:
     assert abs(sum(SPLITS.values()) - 1.0) < 1e-9
 
 
-def test_splits_has_required_keys():
+def test_splits_has_required_keys() -> None:
     assert set(SPLITS.keys()) == {"train", "val", "test"}
 
 
-def test_numeric_constants_are_positive():
+def test_numeric_constants_are_positive() -> None:
     assert IMAGE_SIZE > 0
     assert BATCH_SIZE > 0
     assert NUM_WORKERS >= 0
 
 
-def test_seeds_contains_default():
+def test_seeds_contains_default() -> None:
     assert DEFAULT_SEED in SEEDS
     assert len(SEEDS) > 0
 
 
-def test_image_extensions_are_strings():
+def test_image_extensions_are_strings() -> None:
     assert len(IMAGE_EXTENSIONS) > 0
     for ext in IMAGE_EXTENSIONS:
         assert ext.startswith("."), f"Extension {ext!r} must start with '.'"
 
 
-def test_wandb_strings_are_nonempty():
+def test_wandb_strings_are_nonempty() -> None:
     assert isinstance(WANDB_ENTITY, str) and WANDB_ENTITY
     assert isinstance(WANDB_PROJECT, str) and WANDB_PROJECT

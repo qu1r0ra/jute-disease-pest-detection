@@ -19,7 +19,7 @@ TRAIN_SCRIPT = (
     / "jute_disease"
     / "engines"
     / "dl"
-    / "train.py"
+    / "cli.py"
 )
 
 

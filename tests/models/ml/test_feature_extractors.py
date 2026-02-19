@@ -19,7 +19,7 @@ def sample_pil_image() -> Image.Image:
     return Image.fromarray(arr)
 
 
-def test_raw_pixel_extractor_numpy(sample_numpy_image):
+def test_raw_pixel_extractor_numpy(sample_numpy_image: np.ndarray) -> None:
     """Test RawPixelFeatureExtractor with numpy input."""
     extractor = RawPixelFeatureExtractor(img_size=IMAGE_SIZE)
     features = extractor.extract(sample_numpy_image)
@@ -29,7 +29,7 @@ def test_raw_pixel_extractor_numpy(sample_numpy_image):
     assert features.dtype == np.float32
 
 
-def test_raw_pixel_extractor_pil(sample_pil_image):
+def test_raw_pixel_extractor_pil(sample_pil_image: Image.Image) -> None:
     """Test RawPixelFeatureExtractor with PIL input."""
     extractor = RawPixelFeatureExtractor(img_size=IMAGE_SIZE)
     features = extractor.extract(sample_pil_image)
@@ -39,7 +39,7 @@ def test_raw_pixel_extractor_pil(sample_pil_image):
 
 
 @pytest.mark.slow
-def test_handcrafted_extractor_numpy(sample_numpy_image):
+def test_handcrafted_extractor_numpy(sample_numpy_image: np.ndarray) -> None:
     """Test HandcraftedFeatureExtractor with numpy input."""
     extractor = HandcraftedFeatureExtractor()
     features = extractor.extract(sample_numpy_image)
@@ -50,7 +50,7 @@ def test_handcrafted_extractor_numpy(sample_numpy_image):
 
 
 @pytest.mark.slow
-def test_handcrafted_extractor_pil(sample_pil_image):
+def test_handcrafted_extractor_pil(sample_pil_image: Image.Image) -> None:
     """Test HandcraftedFeatureExtractor with PIL input."""
     extractor = HandcraftedFeatureExtractor()
     features = extractor.extract(sample_pil_image)

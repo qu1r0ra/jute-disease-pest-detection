@@ -6,7 +6,7 @@ import torch
 from jute_disease.utils.visualization import denormalize
 
 
-def test_denormalize():
+def test_denormalize() -> None:
     """Test denormalize function converts normalized tensor back to numpy image."""
     # (C, H, W) tensor
     img_tensor = torch.zeros((3, 32, 32))
@@ -25,7 +25,7 @@ def test_denormalize():
     assert np.allclose(denorm[0, 0, :], expected_pixel, atol=1e-5)
 
 
-def test_denormalize_clipping():
+def test_denormalize_clipping() -> None:
     """Test denormalize function clips values to [0, 1]."""
     # Large positive/negative values
     img_tensor = torch.ones((3, 10, 10)) * 10
