@@ -10,7 +10,7 @@ class Classifier(LightningModule):
     def __init__(
         self,
         feature_extractor: nn.Module,
-        num_classes: int = 6,
+        num_classes: int,
         lr: float = 1e-3,
         weight_decay: float = 0.01,
         compile_model: bool = True,
@@ -51,6 +51,12 @@ class Classifier(LightningModule):
         )
         self.test_f1 = torchmetrics.F1Score(
             task="multiclass", num_classes=num_classes, average="macro"
+        )
+
+    def extra_repr(self) -> str:
+        return (
+            f"num_classes={self.num_classes}, lr={self.lr}, "
+            "weight_decay={self.weight_decay}"
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
