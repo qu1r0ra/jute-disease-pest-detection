@@ -8,14 +8,8 @@ from torchvision.datasets import ImageFolder
 import wandb
 from jute_disease.data import ml_train_transforms, ml_val_transforms
 from jute_disease.models.ml import (
-    CraftedFeatureExtractor,
-    KNearestNeighbors,
-    LogisticRegression,
-    MultinomialNaiveBayes,
-    RandomForest,
-    RawPixelFeatureExtractor,
-    SklearnClassifier,
-    SupportVectorMachine,
+    FEATURE_EXTRACTORS,
+    ML_CLASSIFIERS,
     extract_features,
 )
 from jute_disease.utils import (
@@ -31,14 +25,6 @@ from jute_disease.utils import (
 )
 
 logger = get_logger(__name__)
-
-ML_CLASSIFIERS: dict[str, type[SklearnClassifier]] = {
-    "knn": KNearestNeighbors,
-    "lr": LogisticRegression,
-    "mnb": MultinomialNaiveBayes,
-    "rf": RandomForest,
-    "svm": SupportVectorMachine,
-}
 
 
 def train_ml(
@@ -64,10 +50,8 @@ def train_ml(
             },
         )
 
-    if feature_type == "crafted":
-        extractor = CraftedFeatureExtractor()
-    else:
-        extractor = RawPixelFeatureExtractor()
+    extractor_cls = FEATURE_EXTRACTORS[feature_type]
+    extractor = extractor_cls()
 
     train_ds = ImageFolder(root=ML_SPLIT_DIR / "train", transform=ml_train_transforms)
     val_ds = ImageFolder(root=ML_SPLIT_DIR / "val", transform=ml_val_transforms)

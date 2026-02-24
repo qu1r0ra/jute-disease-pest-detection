@@ -1,4 +1,5 @@
 from jute_disease.models.ml.classifiers import (
+    ML_CLASSIFIERS,
     KNearestNeighbors,
     LogisticRegression,
     MultinomialNaiveBayes,
@@ -7,6 +8,7 @@ from jute_disease.models.ml.classifiers import (
     SupportVectorMachine,
 )
 from jute_disease.models.ml.features import (
+    FEATURE_EXTRACTORS,
     BaseFeatureExtractor,
     CraftedFeatureExtractor,
     RawPixelFeatureExtractor,
@@ -24,4 +26,6 @@ __all__ = [
     "SklearnClassifier",
     "SupportVectorMachine",
     "extract_features",
+    "ML_CLASSIFIERS",
+    "FEATURE_EXTRACTORS",
 ]

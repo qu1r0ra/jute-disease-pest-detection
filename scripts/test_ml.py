@@ -1,6 +1,7 @@
 import argparse
 
-from jute_disease.engines.ml.test import ML_CLASSIFIERS, test_ml
+from jute_disease.engines.ml.test import test_ml
+from jute_disease.models.ml import FEATURE_EXTRACTORS, ML_CLASSIFIERS
 from jute_disease.utils import DEFAULT_SEED
 
 
@@ -17,7 +18,7 @@ def main() -> None:
         "--feature_type",
         type=str,
         default="crafted",
-        choices=["crafted", "raw"],
+        choices=list(FEATURE_EXTRACTORS.keys()),
         help="Type of features used (crafted or raw)",
     )
     parser.add_argument(

@@ -158,3 +158,9 @@ def extract_features(
         logger.info(f"Saved cached features: {full_cache_name}")
 
     return X, y
+
+
+FEATURE_EXTRACTORS: dict[str, type[BaseFeatureExtractor]] = {
+    "crafted": CraftedFeatureExtractor,
+    "raw": RawPixelFeatureExtractor,
+}
