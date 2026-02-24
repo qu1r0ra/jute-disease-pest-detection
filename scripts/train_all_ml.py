@@ -8,8 +8,6 @@ from jute_disease.utils import get_logger
 
 logger = get_logger(__name__)
 
-TRAIN_SCRIPT = "src/jute_disease/engines/ml/train.py"
-
 CLASSIFIERS = ["rf", "svm", "knn", "lr", "mnb"]
 FEATURE_TYPES = ["crafted", "raw"]
 
@@ -31,12 +29,13 @@ def run_all_ml(
             cmd = [
                 "uv",
                 "run",
-                "jute-ml",
+                "python",
+                "scripts/train_ml.py",
                 "--classifier",
                 clf,
                 "--feature_type",
                 feat,
-            ]  # fmt: skip
+            ]
 
             if balanced:
                 cmd.append("--balanced")
