@@ -8,14 +8,14 @@ from jute_disease.models.ml.classifiers import (
 )
 from jute_disease.models.ml.features import (
     BaseFeatureExtractor,
-    HandcraftedFeatureExtractor,
+    CraftedFeatureExtractor,
     RawPixelFeatureExtractor,
     extract_features,
 )
 
 __all__ = [
     "BaseFeatureExtractor",
-    "HandcraftedFeatureExtractor",
+    "CraftedFeatureExtractor",
     "KNearestNeighbors",
     "LogisticRegression",
     "MultinomialNaiveBayes",

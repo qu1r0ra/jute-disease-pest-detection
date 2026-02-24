@@ -23,7 +23,7 @@ class BaseFeatureExtractor(ABC):
         pass
 
 
-class HandcraftedFeatureExtractor(BaseFeatureExtractor):
+class CraftedFeatureExtractor(BaseFeatureExtractor):
     """Extracts Color (HSV), Texture (LBP, GLCM), and Shape (HOG) features."""
 
     def __init__(self) -> None:

@@ -76,7 +76,7 @@ This project provides unified CLI entry points for common tasks:
 - **`jute-ml`**: Entry point for the Machine Learning engine.
 
   ```bash
-  uv run jute-ml --classifier rf --feature_type handcrafted
+  uv run jute-ml --classifier rf --feature_type crafted
   ```
 
 ### 3.3. Reproducing the Results

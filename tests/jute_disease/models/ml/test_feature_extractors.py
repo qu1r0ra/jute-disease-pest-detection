@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from jute_disease.models.ml import HandcraftedFeatureExtractor, RawPixelFeatureExtractor
+from jute_disease.models.ml import CraftedFeatureExtractor, RawPixelFeatureExtractor
 from jute_disease.utils import IMAGE_SIZE
 
 
@@ -39,9 +39,9 @@ def test_raw_pixel_extractor_pil(sample_pil_image: Image.Image) -> None:
 
 
 @pytest.mark.slow
-def test_handcrafted_extractor_numpy(sample_numpy_image: np.ndarray) -> None:
-    """Test HandcraftedFeatureExtractor with numpy input."""
-    extractor = HandcraftedFeatureExtractor()
+def test_crafted_extractor_numpy(sample_numpy_image: np.ndarray) -> None:
+    """Test CraftedFeatureExtractor with numpy input."""
+    extractor = CraftedFeatureExtractor()
     features = extractor.extract(sample_numpy_image)
 
     assert isinstance(features, np.ndarray)
@@ -50,9 +50,9 @@ def test_handcrafted_extractor_numpy(sample_numpy_image: np.ndarray) -> None:
 
 
 @pytest.mark.slow
-def test_handcrafted_extractor_pil(sample_pil_image: Image.Image) -> None:
-    """Test HandcraftedFeatureExtractor with PIL input."""
-    extractor = HandcraftedFeatureExtractor()
+def test_crafted_extractor_pil(sample_pil_image: Image.Image) -> None:
+    """Test CraftedFeatureExtractor with PIL input."""
+    extractor = CraftedFeatureExtractor()
     features = extractor.extract(sample_pil_image)
 
     assert isinstance(features, np.ndarray)

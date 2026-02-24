@@ -37,7 +37,7 @@ Review [`ARCHITECTURE.md`](../ARCHITECTURE.md) for full details, but keep these 
 
 - **Dual-Engine Setup**:
   - **Deep Learning (DL)**: Housed in `src/jute_disease/models/dl/`. Driven by PyTorch Lightning's CLI via the **`jute-dl`** command. Models use a wrapper (`Classifier`) around `timm` backbones (`TimmBackbone`). Default is often `mobilevit_s`.
-  - **Machine Learning (ML)**: Housed in `src/jute_disease/models/ml/`. Driven via the **`jute-ml`** command. Scikit-learn estimators are wrapped in a generic `SklearnClassifier` adapter. Features are extracted manually (e.g., `HandcraftedFeatureExtractor`, `RawPixelFeatureExtractor`).
+  - **Machine Learning (ML)**: Housed in `src/jute_disease/models/ml/`. Driven via the **`jute-ml`** command. Scikit-learn estimators are wrapped in a generic `SklearnClassifier` adapter. Features are extracted manually (e.g., `CraftedFeatureExtractor`, `RawPixelFeatureExtractor`).
 - **Web Annotator App**:
   - Housed in `src/annotator/`. A Flask web app used to manually annotate images and visualize predictions. Relies on SQLite (`annotations.db`) and `Flask-SQLAlchemy`.
   - **Environment Override**: The database URI can be overridden via the `DATABASE_URL` environment variable, which can be stored in the root **`.env`** file.

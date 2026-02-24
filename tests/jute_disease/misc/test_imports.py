@@ -36,7 +36,7 @@ def test_models_dl_api() -> None:
 def test_models_ml_api() -> None:
     from jute_disease.models.ml import (
         BaseFeatureExtractor,
-        HandcraftedFeatureExtractor,
+        CraftedFeatureExtractor,
         KNearestNeighbors,
         LogisticRegression,
         MultinomialNaiveBayes,
@@ -54,7 +54,7 @@ def test_models_ml_api() -> None:
     assert RandomForest is not None
     assert SupportVectorMachine is not None
     assert BaseFeatureExtractor is not None
-    assert HandcraftedFeatureExtractor is not None
+    assert CraftedFeatureExtractor is not None
     assert RawPixelFeatureExtractor is not None
     assert extract_features is not None
 

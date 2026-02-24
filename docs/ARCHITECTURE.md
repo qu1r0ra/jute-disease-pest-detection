@@ -55,7 +55,7 @@ The DL pipeline is built using **PyTorch Lightning** for state-of-the-art reprod
 
 Classical ML models are integrated using a custom adapter pattern to unify them with the DL workflow.
 
-- **Feature Extractors**: Classes like `HandcraftedFeatureExtractor` convert raw images into numerical vectors (HSV, LBP, HOG). `RawPixelFeatureExtractor` handles pixel flattening.
+- **Feature Extractors**: Classes like `CraftedFeatureExtractor` convert raw images into numerical vectors (HSV, LBP, HOG). `RawPixelFeatureExtractor` handles pixel flattening.
 - **Adapters**: The `SklearnClassifier` base class wraps standard scikit-learn estimators to provide a consistent `fit`/`predict`/`save`/`load` interface across the project.
 - **Implmentations**: Currently supports Logistic Regression, SVM, Random Forest, KNN, and Multinomial Naive Bayes.
 

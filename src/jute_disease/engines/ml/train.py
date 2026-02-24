@@ -9,7 +9,7 @@ from torchvision.datasets import ImageFolder
 import wandb
 from jute_disease.data import ml_train_transforms, ml_val_transforms
 from jute_disease.models.ml import (
-    HandcraftedFeatureExtractor,
+    CraftedFeatureExtractor,
     KNearestNeighbors,
     LogisticRegression,
     MultinomialNaiveBayes,
@@ -52,9 +52,9 @@ def train_ml() -> None:
     parser.add_argument(
         "--feature_type",
         type=str,
-        default="handcrafted",
-        choices=["handcrafted", "raw"],
-        help="Type of features to extract (handcrafted or raw)",
+        default="crafted",
+        choices=["crafted", "raw"],
+        help="Type of features to extract (crafted or raw)",
     )
     parser.add_argument(
         "--balanced",
@@ -78,7 +78,7 @@ def train_ml() -> None:
         wandb.init(
             entity=WANDB_ENTITY,
             project=WANDB_PROJECT,
-            name=f"ClassicalML-{args.classifier}",
+            name=f"ClassicalML-{args.classifier}-{args.feature_type}",
             config={
                 "classifier": args.classifier,
                 "feature_type": args.feature_type,
@@ -87,8 +87,8 @@ def train_ml() -> None:
             },
         )
 
-    if args.feature_type == "handcrafted":
-        extractor = HandcraftedFeatureExtractor()
+    if args.feature_type == "crafted":
+        extractor = CraftedFeatureExtractor()
     else:
         extractor = RawPixelFeatureExtractor()
 

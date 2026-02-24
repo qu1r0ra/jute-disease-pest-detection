@@ -11,7 +11,7 @@ logger = get_logger(__name__)
 TRAIN_SCRIPT = "src/jute_disease/engines/ml/train.py"
 
 CLASSIFIERS = ["rf", "svm", "knn", "lr", "mnb"]
-FEATURE_TYPES = ["handcrafted", "raw"]
+FEATURE_TYPES = ["crafted", "raw"]
 
 
 def run_all_ml(
