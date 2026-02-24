@@ -40,8 +40,8 @@ Each subpackage in `src/jute_disease/` (e.g., `models.ml`, `data`, `utils`) uses
 
 The project exposes unified CLI entry points defined in `pyproject.toml`:
 
-- **`jute-dl`**: Maps to `jute_disease.engines.dl.cli:main`. It leverages the **Lightning CLI** to drive training, testing, and prediction from configuration files.
-- **`jute-ml`**: Maps to `jute_disease.engines.ml.train:train_ml`. It provides a consolidated interface for classical machine learning training and evaluation.
+- **`scripts/train_dl.py`**: The main entry point for the Deep learning engine. It leverages the **Lightning CLI** to drive training, testing, and prediction from configuration files.
+- **`make train-ml`**: Centralized Makefile entry point for Classical ML training, executing Python functions housed in `scripts/train_ml.py` and `src/jute_disease/engines/ml/`.
 
 ### 3. Deep Learning Service (Lightning + Timm)
 
