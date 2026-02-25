@@ -7,9 +7,9 @@ import numpy as np
 import pytest
 
 from jute_disease.models.ml import (
+    GaussianNaiveBayes,
     KNearestNeighbors,
     LogisticRegression,
-    MultinomialNaiveBayes,
     RandomForest,
     SklearnClassifier,
     SupportVectorMachine,
@@ -18,7 +18,7 @@ from jute_disease.models.ml import (
 
 @pytest.fixture
 def xy() -> tuple[np.ndarray, np.ndarray]:
-    """Tiny 2-class dataset with non-negative features (for MNB compatibility)."""
+    """Tiny 2-class dataset."""
     rng = np.random.default_rng(42)
     X = np.abs(rng.random((30, 8))).astype(np.float32)
     y = np.array([0, 1] * 15)
@@ -27,7 +27,7 @@ def xy() -> tuple[np.ndarray, np.ndarray]:
 
 @pytest.mark.parametrize(
     "cls",
-    [LogisticRegression, RandomForest, SupportVectorMachine, MultinomialNaiveBayes],
+    [LogisticRegression, RandomForest, SupportVectorMachine, GaussianNaiveBayes],
 )
 def test_classifier_fit_predict(
     cls: type[SklearnClassifier], xy: tuple[np.ndarray, np.ndarray]
@@ -42,7 +42,7 @@ def test_classifier_fit_predict(
 
 @pytest.mark.parametrize(
     "cls",
-    [LogisticRegression, RandomForest, SupportVectorMachine, MultinomialNaiveBayes],
+    [LogisticRegression, RandomForest, SupportVectorMachine, GaussianNaiveBayes],
 )
 def test_classifier_predict_proba(
     cls: type[SklearnClassifier], xy: tuple[np.ndarray, np.ndarray]
@@ -136,10 +136,10 @@ def test_classifiers_deterministic_seed() -> None:
 
 def test_classifiers_unsupported_random_state_ignored() -> None:
     """Classifiers that do not support random_state shouldn't crash if passed one."""
-    from jute_disease.models.ml import KNearestNeighbors, MultinomialNaiveBayes
+    from jute_disease.models.ml import GaussianNaiveBayes, KNearestNeighbors
 
     knn = KNearestNeighbors(random_state=42)
-    mnb = MultinomialNaiveBayes(random_state=42)
+    gnb = GaussianNaiveBayes(random_state=42)
 
     assert knn is not None
-    assert mnb is not None
+    assert gnb is not None

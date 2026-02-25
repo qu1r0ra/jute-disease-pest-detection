@@ -6,9 +6,9 @@ from PIL import Image
 
 from jute_disease.models.ml import (
     CraftedFeatureExtractor,
+    GaussianNaiveBayes,
     KNearestNeighbors,
     LogisticRegression,
-    MultinomialNaiveBayes,
     RandomForest,
     RawPixelFeatureExtractor,
     SklearnClassifier,
@@ -19,9 +19,9 @@ from jute_disease.utils import ML_SPLIT_DIR, get_logger
 logger = get_logger(__name__)
 
 ML_CLASSIFIERS: dict[str, type[SklearnClassifier]] = {
+    "gnb": GaussianNaiveBayes,
     "knn": KNearestNeighbors,
     "lr": LogisticRegression,
-    "mnb": MultinomialNaiveBayes,
     "rf": RandomForest,
     "svm": SupportVectorMachine,
 }
@@ -108,7 +108,6 @@ def predict_ml() -> None:
         else:
             logger.info(f"Probabilities: {proba}")
     except Exception:
-        # Some models might not support predict_proba or might need extra config
         pass
 
 
