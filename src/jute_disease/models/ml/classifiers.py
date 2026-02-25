@@ -6,10 +6,10 @@ import numpy as np
 from sklearn.base import ClassifierMixin
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression as SKLogisticRegression
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 
 from jute_disease.utils.constants import ML_MODELS_DIR
@@ -86,7 +86,6 @@ class KNearestNeighbors(SklearnClassifier):
     supports_sample_weight = False
 
     def __init__(self, random_state: int | None = None, **kwargs: object) -> None:
-        # KNeighborsClassifier does not use random_state
         super().__init__(KNeighborsClassifier, **kwargs)
 
 
@@ -100,6 +99,7 @@ class SupportVectorMachine(SklearnClassifier):
 
 class LogisticRegression(SklearnClassifier):
     def __init__(self, random_state: int | None = None, **kwargs: object) -> None:
+        kwargs.setdefault("max_iter", 1000)
         if random_state is not None:
             kwargs["random_state"] = random_state
         super().__init__(SKLogisticRegression, **kwargs)
@@ -112,18 +112,15 @@ class RandomForest(SklearnClassifier):
         super().__init__(RandomForestClassifier, **kwargs)
 
 
-class MultinomialNaiveBayes(SklearnClassifier):
-    scaler_cls = MinMaxScaler  # MNB requires non-negative values
-
+class GaussianNaiveBayes(SklearnClassifier):
     def __init__(self, random_state: int | None = None, **kwargs: object) -> None:
-        # MultinomialNB does not use random_state
-        super().__init__(MultinomialNB, **kwargs)
+        super().__init__(GaussianNB, **kwargs)
 
 
 ML_CLASSIFIERS: dict[str, type[SklearnClassifier]] = {
+    "gnb": GaussianNaiveBayes,
     "knn": KNearestNeighbors,
     "lr": LogisticRegression,
-    "mnb": MultinomialNaiveBayes,
     "rf": RandomForest,
     "svm": SupportVectorMachine,
 }

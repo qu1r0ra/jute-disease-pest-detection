@@ -57,7 +57,7 @@ Classical ML models are integrated using a custom adapter pattern to unify them 
 
 - **Feature Extractors**: Classes like `CraftedFeatureExtractor` convert raw images into numerical vectors (HSV, LBP, HOG). `RawPixelFeatureExtractor` handles pixel flattening.
 - **Adapters**: The `SklearnClassifier` base class wraps standard scikit-learn estimators to provide a consistent `fit`/`predict`/`save`/`load` interface across the project.
-- **Implementations**: Currently supports Logistic Regression, SVM, Random Forest, KNN, and Multinomial Naive Bayes.
+- **Implementations**: Currently supports Logistic Regression, SVM, Random Forest, KNN, and Gaussian Naive Bayes.
 
 ### 5. Data Management & Reproducibility
 

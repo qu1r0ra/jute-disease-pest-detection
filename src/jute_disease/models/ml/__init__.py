@@ -1,8 +1,8 @@
 from jute_disease.models.ml.classifiers import (
     ML_CLASSIFIERS,
+    GaussianNaiveBayes,
     KNearestNeighbors,
     LogisticRegression,
-    MultinomialNaiveBayes,
     RandomForest,
     SklearnClassifier,
     SupportVectorMachine,
@@ -18,9 +18,9 @@ from jute_disease.models.ml.features import (
 __all__ = [
     "BaseFeatureExtractor",
     "CraftedFeatureExtractor",
+    "GaussianNaiveBayes",
     "KNearestNeighbors",
     "LogisticRegression",
-    "MultinomialNaiveBayes",
     "RandomForest",
     "RawPixelFeatureExtractor",
     "SklearnClassifier",
