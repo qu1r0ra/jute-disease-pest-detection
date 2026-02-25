@@ -27,13 +27,13 @@ help:
 	@echo "  make clean-ml     		- Remove ML models and extracted features from artifacts"
 
 data:
-	$(PYTHON) -m jute_disease.utils.data_utils init
+	$(PYTHON) src/jute_disease/data/utils.py init
 
 setup-data:
-	$(PYTHON) -m jute_disease.utils.data_utils setup
+	$(PYTHON) src/jute_disease/data/utils.py setup
 
 split-data:
-	$(PYTHON) -m jute_disease.utils.data_utils split
+	$(PYTHON) src/jute_disease/data/utils.py split
 
 train-ml:
 	$(PYTHON) scripts/train_all_ml.py
