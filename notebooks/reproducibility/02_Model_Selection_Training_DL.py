@@ -145,34 +145,21 @@ else:
 #
 # We systematically train and evaluate our six chosen architectures on the `DATA_ZIP_PATH` jute splits. Every model's feature extractor initiates from ImageNet generic representations. We will freeze their backbones and only train the final custom dense classifiers.
 
+# %% [markdown]
+# **Fast Dev Run Validation**
+#
+# First, we dispatch a rapid sanity check using PyTorch Lightning's `fast_dev_run` capability. This performs exactly 1 training and validation batch traversing through all 6 architectures. It mathematically verifies gradients flow properly without silently crashing an hour later!
+
 # %%
-import subprocess
+# !uv run python scripts/train_all_dl_check.py
 
-baseline_models = [
-    "inception.yaml",
-    "vgg.yaml",
-    "densenet.yaml",
-    "resnet.yaml",
-    "mobilenet.yaml",
-    "mobilevit.yaml",
-]
+# %% [markdown]
+# **Execute 6 Deep Learning Baselines**
+#
+# Running the master sequential launcher. This autonomously `fits` and subsequently `tests` each `.yaml` model config entirely using your GPU.
 
-for model_config in baseline_models:
-    logging.info(
-        "\n{'=' * 50}\n"
-        f"Training {model_config} baseline directly on Jute...\n"
-        "{'=' * 50}"
-    )
-    cmd = [
-        "uv",
-        "run",
-        "python",
-        "scripts/train_dl.py",
-        "fit",
-        "--config",
-        f"configs/baselines/{model_config}",
-    ]
-    subprocess.run(cmd, check=True)
+# %%
+# !uv run python scripts/train_all_dl.py
 
 # %% [markdown]
 # ## === Everything above is final ===
