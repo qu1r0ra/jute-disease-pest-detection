@@ -42,7 +42,7 @@ Review [`ARCHITECTURE.md`](../ARCHITECTURE.md) for full details, but keep these 
   - Housed in `src/annotator/`. A Flask web app used to manually annotate images and visualize predictions. Relies on SQLite (`annotations.db`) and `Flask-SQLAlchemy`.
   - **Environment Override**: The database URI can be overridden via the `DATABASE_URL` environment variable, which can be stored in the root **`.env`** file.
 - **Data Handling**:
-  - All data ingestion and splitting are managed by `src/jute_disease/data/datamodule.py` and `utils/data_utils.py`.
+  - All data ingestion and splitting are managed by `src/jute_disease/data/datamodule.py` and `src/jute_disease/data/utils.py`.
   - The `DataModule` implements K-Fold Cross-Validation and Weighted Random Sampling.
 - **Public API & Testing**:
   - Use `jute_disease.` package imports (e.g., `from jute_disease.models.dl import Classifier`) instead of deep internal relative imports when working outside of the specific subpackage.

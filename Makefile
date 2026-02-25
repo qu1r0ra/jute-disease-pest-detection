@@ -24,15 +24,16 @@ help:
 	@echo "  make format       		- Run formatting (ruff format)"
 	@echo "  make clean        		- Remove temporary files and logs"
 	@echo "  make clean-artifacts  	- Remove all generated artifacts (models, checkpoints)"
+	@echo "  make clean-ml     		- Remove ML models and extracted features from artifacts"
 
 data:
-	$(PYTHON) -m jute_disease.utils.data_utils init
+	$(PYTHON) src/jute_disease/data/utils.py init
 
 setup-data:
-	$(PYTHON) -m jute_disease.utils.data_utils setup
+	$(PYTHON) src/jute_disease/data/utils.py setup
 
 split-data:
-	$(PYTHON) -m jute_disease.utils.data_utils split
+	$(PYTHON) src/jute_disease/data/utils.py split
 
 train-ml:
 	$(PYTHON) scripts/train_all_ml.py
@@ -84,4 +85,7 @@ clean:
 	rm -rf .coverage htmlcov lightning_logs wandb
 
 clean-artifacts:
-	rm -rf artifacts/ml_models artifacts/checkpoints artifacts/logs
+	rm -rf artifacts/ml_models artifacts/checkpoints artifacts/logs artifacts/features
+
+clean-ml:
+	rm -rf artifacts/ml_models artifacts/features
