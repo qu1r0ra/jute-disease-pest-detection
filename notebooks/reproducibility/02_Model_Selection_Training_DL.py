@@ -57,7 +57,12 @@ seed_everything(DEFAULT_SEED)
 logger.info("Installing dependencies with uv...")
 # !uv pip install --system -e .
 
-# Mount your Google Drive into the Colab runtime
+# %% [markdown]
+# Mount your Google Drive into the Colab runtime.
+
+# %%
+from google.colab import drive
+
 drive.mount("/content/drive")
 
 # %% [markdown]
@@ -83,6 +88,37 @@ else:
     )
 
 # %% [markdown]
+# To persist our training artifacts beyond the Colab VM, we can _symlink_ the `artifacts` folder directly to our Google Drive.
+
+# %%
+GDRIVE_PATH = Path(DATA_ZIP_PATH).parent
+GDRIVE_ARTIFACTS = GDRIVE_PATH / "artifacts"
+LOCAL_ARTIFACTS = Path("artifacts")
+
+GDRIVE_ARTIFACTS.mkdir(parents=True, exist_ok=True)
+
+if not LOCAL_ARTIFACTS.exists() and not LOCAL_ARTIFACTS.is_symlink():
+    LOCAL_ARTIFACTS.symlink_to(GDRIVE_ARTIFACTS)
+    logger.info(f"Symlinked {LOCAL_ARTIFACTS.absolute()} -> {GDRIVE_ARTIFACTS}")
+else:
+    logger.info(f"{LOCAL_ARTIFACTS} already exists or is linked.")
+
+# %% [markdown]
+# Let us perform a quick sanity test to ensure all generated files show up inside your Google Drive folder containing your `data.zip`. If you see a generated `test.txt` file then you are all set to proceed.
+
+# %%
+test_file = LOCAL_ARTIFACTS / "test.txt"
+test_file.write_text("Hacking the mainframe.")
+
+if (GDRIVE_ARTIFACTS / "test.txt").exists():
+    logger.info("Symlink worked.")
+    test_file.unlink()
+else:
+    logger.error("Symlink failed :<")
+
+# %% [markdown]
+# ## Transfer Learning Setup
+#
 # We saw from EDA that our dataset is pretty small (2382 images across 6 classes) for an image recognition task. To address our limitation in data, we decided to employ transfer learning as a key technique (among others, such as data augmentation) for our deep learning experiments.
 #
 # (levels of transfer learning)
@@ -104,64 +140,81 @@ else:
 #
 # `(i will polish later)`
 
+# %% [markdown]
+# ## Deep Learning Baselines (Level 1: ImageNet Only)
+#
+# We systematically train and evaluate our six chosen architectures on the `DATA_ZIP_PATH` jute splits. Every model's feature extractor initiates from ImageNet generic representations. We will freeze their backbones and only train the final custom dense classifiers.
+
 # %%
+import subprocess
+
+baseline_models = [
+    "inception.yaml",
+    "vgg.yaml",
+    "densenet.yaml",
+    "resnet.yaml",
+    "mobilenet.yaml",
+    "mobilevit.yaml",
+]
+
+for model_config in baseline_models:
+    logging.info(
+        "\n{'=' * 50}\n"
+        f"Training {model_config} baseline directly on Jute...\n"
+        "{'=' * 50}"
+    )
+    cmd = [
+        "uv",
+        "run",
+        "python",
+        "scripts/train_dl.py",
+        "fit",
+        "--config",
+        f"configs/baselines/{model_config}",
+    ]
+    subprocess.run(cmd, check=True)
 
 # %% [markdown]
 # ## === Everything above is final ===
 
+
 # %% [markdown]
-# Let us download the datasets we chose for transfer learning:
-# - **PlantVillage**: (short description)
-# - **PlantDoc**: 
+# ## 2. MSTL Domain Initializations (Pre-training)
+# We now download the massive `PlantVillage` and specialized `PlantDoc` datasets via KaggleHub to execute the Multi-Stage Transfer Learning on our MobileViT engine.
 
 # %%
-from jute_disease.data.download import download_plant_village, download_plant_doc
+from jute_disease.data.download import download_plant_doc, download_plant_village
 
+# Download external datasets directly into Colab environment
 download_plant_village()
 download_plant_doc()
 
 # %% [markdown]
-# **Pre-training MobileViT on PlantVillage (Level 2 Checkpoint)**
-# We invoke the pre-training engine on the newly downloaded PlantVillage subset.
+# **Pre-Train MobileViT on PlantVillage (Produces Level 2 Checkpoint)**
+# We use our custom PyTorch Lightning pre-training script on PlantVillage. Early-stopping is implemented intrinsically (Defaults to 50 epochs, halts upon val_loss convergence).
 
 # %%
 # !uv run python src/jute_disease/engines/dl/pretrain.py \
 #   --data_dir data/external/plantvillage \
-#   --output_path artifacts/checkpoints/pretrained/mobilevit_plantvillage.ckpt \
-#   --epochs 5
+#   --output_path artifacts/checkpoints/pretrained/mobilevit_plantvillage.ckpt
 
 # %% [markdown]
-# **Pre-training MobileViT on PlantDoc (Level 3 Checkpoint)**
-# *Note: We initialize this pre-training from the PlantVillage checkpoint we just created (hence ImageNet -> PlantVillage -> PlantDoc).*
+# **Pre-Train MobileViT on PlantDoc (Produces Level 3 Checkpoint)**
+# Note the `--base_weights` parameter: We resume *exactly* from the Level 2 checkpoint! This synthesizes the entire ImageNet -> PlantVillage -> PlantDoc hierarchy!
 
 # %%
 # !uv run python src/jute_disease/engines/dl/pretrain.py \
 #   --data_dir data/external/plantdoc \
-#   --checkpoint_path artifacts/checkpoints/pretrained/mobilevit_plantvillage.ckpt \
-#   --output_path artifacts/checkpoints/pretrained/mobilevit_plantvillage_plantdoc.ckpt \
-#   --epochs 5
+#   --base_weights artifacts/checkpoints/pretrained/mobilevit_plantvillage.ckpt \
+#   --output_path artifacts/checkpoints/pretrained/mobilevit_plantvillage_plantdoc.ckpt
 
 # %% [markdown]
-# ## 1. Heavy DL Baselines
-# Training InceptionV3, VGG16, and DenseNet201 to establish standard benchmarks using pure ImageNet pretraining.
-#
-# *Note: We will invoke `scripts/train_dl.py` via Python subprocess or bash commands (`!uv run python scripts/train_dl.py`)*
+# ## 3. Transfer Learning Grid Search (MobileViT Evaluation)
+# Running our Grid Search config utilizing the newly synthesized checkpoints for MobileViT, quantifying the precise benefits of each Initialization Level on small-dataset Leaf Disease recognition!
 
 # %%
+# !uv run python scripts/run_grid_search.py configs/grid/mobilevit_grid.yaml
 
 # %% [markdown]
-# ## 2. MobileViT Transfer Learning Grid
-# Evaluating MobileViT initialization strategies to test the impact of domain-adaptive pretraining:
-# 1. **Level 1**: ImageNet -> Jute
-# 2. **Level 2**: ImageNet -> PlantVillage -> Jute
-# 3. **Level 3**: ImageNet -> PlantVillage -> PlantDoc -> Jute
-#
-# *Note: We will use `scripts/run_grid_search.py` leveraging `configs/grid/mobilevit_grid.yaml`*
-
-# %%
-
-# %% [markdown]
-# ## 3. WandB Analysis
-# Reviewing the logs generated by Weights & Biases to identify the "Champion" baseline and the most effective transfer learning initialization strategy.
-
-# %%
+# ## 4. WandB Analysis
+# From Weights & Biases, we can now deduce our Champion architectural baseline, as well as definitively prove whether or not Level 3 MSTL was superior computationally versus Level 1 generic pretraining.
