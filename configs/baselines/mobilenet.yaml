@@ -10,6 +10,7 @@ trainer:
     init_args:
       project: jute-disease-detection
       entity: grade-descent
+      name: mobilenet
       log_model: true
   callbacks:
     - class_path: lightning.pytorch.callbacks.LearningRateMonitor
@@ -18,6 +19,7 @@ trainer:
     - class_path: lightning.pytorch.callbacks.ModelCheckpoint
       init_args:
         monitor: val_loss
+        dirpath: artifacts/checkpoints/mobilenet
         filename: "mobilenet-{epoch:02d}-{val_loss:.4f}"
         save_top_k: 1
         mode: min
