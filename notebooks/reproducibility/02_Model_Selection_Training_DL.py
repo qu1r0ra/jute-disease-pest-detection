@@ -64,8 +64,6 @@ drive.mount("/content/drive")
 # 2. Update `DATA_ZIP_PATH` below to the path where you stored the file. If you uploaded it to the root of _My Drive_, you can set it to **"/content/drive/MyDrive/data.zip"**.
 
 # %% id="7caa248a"
-import subprocess
-
 # Update this to where your data.zip is stored relative to the Colab VM filesystem.
 # For organization, we stored ours in
 # "/content/drive/MyDrive/Colab Notebooks/Jute Leaf Disease/data.zip"
@@ -73,10 +71,7 @@ DATA_ZIP_PATH = "/content/drive/MyDrive/Colab Notebooks/Jute Leaf Disease/data.z
 
 if Path(DATA_ZIP_PATH).exists():
     print(f"Unzipping {DATA_ZIP_PATH}...")
-    subprocess.run(
-        ["unzip", "-q", "-n", DATA_ZIP_PATH, "-d", "data/by_class"], check=True
-    )
-    # # !unzip -q -n "$DATA_ZIP_PATH" -d data/by_class
+    # !unzip -q -n "$DATA_ZIP_PATH" -d data/by_class
     print("Data unpacked.")
 else:
     print(
