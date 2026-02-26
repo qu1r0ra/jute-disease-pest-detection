@@ -27,7 +27,7 @@
 #
 # **Note:**
 #
-# This notebook must be executed in **Google Colab**, just as the authors did.
+# This notebook must be executed in **Google Colab**, just as we did. Specifically, we used Colab's L4 GPU.
 
 # %% [markdown] id="b04a890a"
 # ## Environment Setup
@@ -41,12 +41,9 @@
 
 # %% id="29c4c90c"
 # ruff: noqa: T201
-from pathlib import Path
-
 from jute_disease.utils.constants import DEFAULT_SEED
 from jute_disease.utils.seed import seed_everything
 
-# %% id="49918c4d"
 seed_everything(DEFAULT_SEED)
 
 # %% [markdown] id="20a1a666"
@@ -64,6 +61,8 @@ drive.mount("/content/drive")
 # 2. Update `DATA_ZIP_PATH` below to the path where you stored the file. If you uploaded it to the root of _My Drive_, you can set it to **"/content/drive/MyDrive/data.zip"**.
 
 # %% id="7caa248a"
+from pathlib import Path
+
 # Update this to where your data.zip is stored relative to the Colab VM filesystem.
 # For organization, we stored ours in
 # "/content/drive/MyDrive/Colab Notebooks/Jute Leaf Disease/data.zip"
