@@ -50,7 +50,7 @@ from jute_disease.utils.seed import seed_everything
 seed_everything(DEFAULT_SEED)
 
 # %% [markdown] id="20a1a666"
-# Mount your Google Drive into the Colab runtime.
+# Mount your Google Drive to the Colab runtime.
 
 # %% id="61b55c67"
 from google.colab import drive
@@ -73,7 +73,9 @@ DATA_ZIP_PATH = "/content/drive/MyDrive/Colab Notebooks/Jute Leaf Disease/data.z
 
 if Path(DATA_ZIP_PATH).exists():
     print(f"Unzipping {DATA_ZIP_PATH}...")
-    subprocess.run(["unzip", "-q", "-n", DATA_ZIP_PATH, "-d", "data/by_class"], check=True)
+    subprocess.run(
+        ["unzip", "-q", "-n", DATA_ZIP_PATH, "-d", "data/by_class"], check=True
+    )
     # # !unzip -q -n "$DATA_ZIP_PATH" -d data/by_class
     print("Data unpacked.")
 else:
