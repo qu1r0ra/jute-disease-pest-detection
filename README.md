@@ -59,7 +59,7 @@ To reproduce our results, you will need the following installed:
 
 1. **Git:** Used to clone this repository.
 
-2. **Python:** We require Python `3.11.14` for this project. You do not need to install the specific version as it will be installed by `uv`.
+2. **Python:** We require Python `>=3.11` for this project. You do not need to install the specific version as it will be installed by `uv`.
 
 3. **uv:** The package manager we used. Installation instructions can be found at <https://docs.astral.sh/uv/getting-started/installation/>.
 
