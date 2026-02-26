@@ -3,7 +3,7 @@ name = "jute-disease-detection"
 version = "0.1.0"
 description = "Deep Learning Exploration for Jute Leaf Disease Detection"
 readme = "README.md"
-requires-python = "==3.11.14"
+requires-python = ">=3.11"
 dependencies = [
     "albumentationsx[headless]>=2.0.14",
     "flask>=3.1.2",
