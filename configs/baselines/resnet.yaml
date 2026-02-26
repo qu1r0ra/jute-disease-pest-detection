@@ -10,6 +10,7 @@ trainer:
     init_args:
       project: jute-disease-detection
       entity: grade-descent
+      name: resnet
       log_model: true
   callbacks:
     - class_path: lightning.pytorch.callbacks.LearningRateMonitor
@@ -25,7 +26,6 @@ trainer:
     - class_path: lightning.pytorch.callbacks.EarlyStopping
       init_args:
         monitor: val_loss
-        dirpath: artifacts/checkpoints/resnet
         patience: 5
         mode: min
 
