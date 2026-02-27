@@ -70,7 +70,7 @@ This project provides unified CLI entry points for common tasks:
 - **`scripts/train_dl.py`**: Entry point for the Deep Learning engine (Lightning CLI).
 
   ```bash
-  uv run python scripts/train_dl.py fit --config configs/baselines/mobilevit.yaml
+  uv run python scripts/train_dl.py fit --config configs/baselines/mobilevit_s.yaml
   ```
 
 - **`make train-ml`**: Entry point for the Machine Learning engine sweep. Or run manually via `uv run python scripts/train_ml.py`.
