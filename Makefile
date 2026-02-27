@@ -44,8 +44,7 @@ train-dl:
 	$(PYTHON) scripts/train_all_dl.py
 
 train-dl-single:
-	$(PYTHON) scripts/train_dl.py fit \
-		--config configs/baselines/$(MODEL).yaml
+	$(PYTHON) scripts/train_all_dl.py --config configs/baselines/$(MODEL).yaml
 
 train-dl-check:
 	$(PYTHON) scripts/train_all_dl_check.py
