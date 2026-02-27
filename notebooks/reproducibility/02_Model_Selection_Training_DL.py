@@ -189,7 +189,6 @@ download_plant_doc()
 # We use our custom PyTorch Lightning pre-training script on PlantVillage. Early-stopping is implemented intrinsically (Defaults to 50 epochs, halts upon val_loss convergence).
 
 # %% id="bc2b9c26"
-# # Replace `<model_name>` with the actual name (e.g., mobilenet_v2)
 # !uv run python src/jute_disease/engines/dl/pretrain.py \
 #   --data_dir data/external/plantvillage \
 #   --output_path artifacts/checkpoints/pretrained/mobilenet_v2-plantvillage.ckpt
@@ -199,20 +198,18 @@ download_plant_doc()
 # Note the `--base_weights` parameter: We resume *exactly* from the Level 2 checkpoint! This synthesizes the entire ImageNet -> PlantVillage -> PlantDoc hierarchy!
 
 # %% id="69798b96"
-# # Replace `<model_name>` with the actual name
 # !uv run python src/jute_disease/engines/dl/pretrain.py \
 #   --data_dir data/external/plantdoc \
 #   --base_weights artifacts/checkpoints/pretrained/mobilenet_v2-plantvillage.ckpt \
 #   --output_path artifacts/checkpoints/pretrained/mobilenet_v2-plantvillage-plantdoc.ckpt
 
 # %% [markdown] id="a1cf8c02"
-# ## 3. Transfer Learning Grid Search
-# Run the Grid Search config utilizing the newly synthesized checkpoints for your Top 2 models, quantifying the precise benefits of each Initialization Level on small-dataset Leaf Disease recognition! Repeat this for Top Model B.
+# **Grid search on different levels of transfer learning on MobileNet V2**
+#
+# Hoping this works.
 
 # %% id="32809cc5"
-# # E.g., duplicate template_grid.yaml to mobilenet_v2_grid.yaml and run:
 # !uv run python scripts/run_grid_search.py configs/grid/mobilenet_v2_grid.yaml
-# !uv run python scripts/run_grid_search.py configs/grid/efficientnet_b5_grid.yaml
 
 # %% [markdown] id="72d060bf"
 # ## 4. WandB Analysis
