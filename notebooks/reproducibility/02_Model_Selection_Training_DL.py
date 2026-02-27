@@ -8,13 +8,12 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.19.1
 #   kernelspec:
-#     display_name: .venv
-#     language: python
+#     display_name: Python 3
 #     name: python3
 # ---
 
 # %% [markdown] colab_type="text" id="view-in-github"
-# <a href="https://colab.research.google.com/github/qu1r0ra/jute-disease-detection/blob/docs%2Fdl-training/notebooks/reproducibility/02_Model_Selection_Training_DL.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+# <a href="https://colab.research.google.com/github/qu1r0ra/jute-disease-detection/blob/main/notebooks/reproducibility/02_Model_Selection_Training_DL.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
 # %% [markdown] id="7fb27b941602401d91542211134fc71a"
 # # Deep Learning Model Selection and Training
@@ -38,11 +37,13 @@
 
 # %pip install uv
 # !uv pip install --system -e .
+# !uv sync
 
-# %% [markdown]
-# If you encounter `ModuleNotFoundError` or any other error (as we also usually encountered), you can simply restart the session and rerun the cell below.
+# %% [markdown] id="26255b47"
+# If you encounter `ModuleNotFoundError`, you can simply restart the session and rerun the notebook from the very first cell.
 
-# %%
+# %% id="cd6910a8"
+# ruff: noqa: T201
 from jute_disease.utils.constants import DEFAULT_SEED
 from jute_disease.utils.seed import seed_everything
 
@@ -62,18 +63,21 @@ drive.mount("/content/drive")
 # 1. Download `data.zip` from <https://drive.google.com/drive/folders/1WoQ-Xzy0Prl9lInHW5JpGX4tpE9YDUua?usp=sharing> and upload it to your Google Colab account's Google Drive. You can simply upload it to the root of _My Drive_ for simplicity.
 # 2. Update `DATA_ZIP_PATH` below to the path where you stored the file. If you uploaded it to the root of _My Drive_, you can set it to **"/content/drive/MyDrive/data.zip"**.
 
+# %% id="oLY0LIHFw3nV"
+# %cd jute-disease-detection
+
 # %% id="7caa248a"
 from pathlib import Path
 
 # Update DATA_ZIP_PATH to where data.zip is stored relative to the Colab VM filesystem.
-# For organization, we stored ours in
+# For organization, we stored ours in!uv pip install --system -e .
 # "/content/drive/MyDrive/Colab Notebooks/Jute Leaf Disease/data.zip"
 DATA_ZIP_PATH = "/content/drive/MyDrive/Colab Notebooks/Jute Leaf Disease/data.zip"
 DEST_PATH = Path("data/by_class")
 
 if Path(DATA_ZIP_PATH).exists():
     DEST_PATH.mkdir(parents=True, exist_ok=True)
-    print(f"Unzipping {DATA_ZIP_PATH}...")
+    print(f"Unzipping {DATA_ZIP_PATH} to {DEST_PATH}...")
     # !unzip -q -n "$DATA_ZIP_PATH" -d "$DEST_PATH"
     print("Data unpacked.")
 else:
@@ -82,11 +86,11 @@ else:
         "Please check the path or upload your data."
     )
 
-# %% [markdown] id="explicit_split_markdown"
-# Let's cleanly construct the `train`, `val`, and `test` sub-folders inside `data/ml_split/` from your unzipped files. The datamodules dynamically evaluate these structural paths for loading!
+# %% [markdown] id="ccaff569"
+# Let's cleanly construct the `train`, `val`, and `test` sub-folders inside `data/ml_split/` from your unzipped files.
 
-# %% id="explicit_split_cell"
-# !uv run python jute_disease/data/utils.py split
+# %% id="8dcf08eb"
+# !uv run python src/jute_disease/data/utils.py split
 
 # %% [markdown] id="849b7c47"
 # To persist our training artifacts beyond the Colab VM, we can _symlink_ the `artifacts` folder directly to our Google Drive.
@@ -94,13 +98,13 @@ else:
 # %% id="c644e78d"
 GDRIVE_PATH = Path(DATA_ZIP_PATH).parent
 GDRIVE_ARTIFACTS = GDRIVE_PATH / "artifacts"
-LOCAL_ARTIFACTS = Path("artifacts")
-
 GDRIVE_ARTIFACTS.mkdir(parents=True, exist_ok=True)
+
+LOCAL_ARTIFACTS = Path("artifacts")
 
 if not LOCAL_ARTIFACTS.exists() and not LOCAL_ARTIFACTS.is_symlink():
     LOCAL_ARTIFACTS.symlink_to(GDRIVE_ARTIFACTS)
-    print(f"Symlinked {LOCAL_ARTIFACTS.absolute()} -> {GDRIVE_ARTIFACTS}")
+    print(f"Symlinked {LOCAL_ARTIFACTS.absolute()} to {GDRIVE_ARTIFACTS}")
 else:
     print(f"{LOCAL_ARTIFACTS} already exists or is linked.")
 
@@ -160,10 +164,10 @@ else:
 # %% id="d32c265a"
 # !uv run python scripts/train_all_dl.py
 
-# %% [markdown]
-# Training an EfficientNet-B7.
+# %% [markdown] id="zezgVidiyti0"
+# Let us fine-tune an EfficientNet-B7.
 
-# %%
+# %% id="IiNA4hRqyxnN"
 # !make train-dl-single MODEL=efficientnet_b7
 
 # %% [markdown] id="e3157de6"
