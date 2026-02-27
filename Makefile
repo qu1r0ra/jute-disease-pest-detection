@@ -16,9 +16,9 @@ help:
 	@echo "  make train-dl-single   - Run training for a single DL model (MODEL=<model_name>)"
 	@echo "  make train-dl-check 	- Run all DL experiments with fast dev run"
 	@echo "  make train-dl-check-single MODEL=<model_name> - Run fast dev run for a single DL model"
-	@echo "  make train-cv     		- Run cross-validation for MobileViT (default 5 folds)"
-	@echo "  make grid-search  		- Run grid search experiment using MobileViT grid config"
-	@echo "  make pretrain     		- Run pre-training script on external data (PlantVillage)"
+	@echo "  make train-cv     		- Run cross-validation for a specific model (default 5 folds)"
+	@echo "  make grid-search  		- Run grid search experiment using the generic template"
+	@echo "  make pretrain     		- Run pre-training script on external data"
 	@echo "  make test         		- Run fast tests (slow tests skipped by default)"
 	@echo "  make test-all     		- Run all tests including slow ones"
 	@echo "  make lint         		- Run linting (ruff check)"
@@ -60,10 +60,10 @@ train-dl-check-single:
 		--trainer.logger=False
 
 train-cv:
-	$(PYTHON) scripts/train_cross_validation.py configs/baselines/mobilevit.yaml --folds 5
+	$(PYTHON) scripts/train_cross_validation.py configs/baselines/mobilevit_s.yaml --folds 5
 
 grid-search:
-	$(PYTHON) scripts/run_grid_search.py configs/grid/mobilevit_grid.yaml
+	$(PYTHON) scripts/run_grid_search.py configs/grid/template_grid.yaml
 
 pretrain:
 	$(PYTHON) src/jute_disease/engines/dl/pretrain.py \
