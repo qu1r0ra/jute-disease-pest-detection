@@ -67,15 +67,16 @@ drive.mount("/content/drive")
 # %% id="7caa248a"
 from pathlib import Path
 
-# Update this to where your data.zip is stored relative to the Colab VM filesystem.
+# Update DATA_ZIP_PATH to where data.zip is stored relative to the Colab VM filesystem.
 # For organization, we stored ours in
 # "/content/drive/MyDrive/Colab Notebooks/Jute Leaf Disease/data.zip"
 DATA_ZIP_PATH = "/content/drive/MyDrive/Colab Notebooks/Jute Leaf Disease/data.zip"
+DEST_PATH = Path("data/by_class")
 
 if Path(DATA_ZIP_PATH).exists():
-    Path("data/by_class").mkdir(parents=True, exist_ok=True)
+    DEST_PATH.mkdir(parents=True, exist_ok=True)
     print(f"Unzipping {DATA_ZIP_PATH}...")
-    # !unzip -q -n "$DATA_ZIP_PATH" -d data/by_class
+    # !unzip -q -n "$DATA_ZIP_PATH" -d "$DEST_PATH"
     print("Data unpacked.")
 else:
     print(
