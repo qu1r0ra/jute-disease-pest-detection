@@ -73,6 +73,7 @@ from pathlib import Path
 DATA_ZIP_PATH = "/content/drive/MyDrive/Colab Notebooks/Jute Leaf Disease/data.zip"
 
 if Path(DATA_ZIP_PATH).exists():
+    Path("data/by_class").mkdir(parents=True, exist_ok=True)
     print(f"Unzipping {DATA_ZIP_PATH}...")
     # !unzip -q -n "$DATA_ZIP_PATH" -d data/by_class
     print("Data unpacked.")
