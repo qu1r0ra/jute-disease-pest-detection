@@ -38,7 +38,7 @@ model:
   feature_extractor:
     class_path: jute_disease.models.dl.backbone.TimmBackbone
     init_args:
-      model_name: efficientnet_b7
+      model_name: tf_efficientnet_b7.ns_jft_in1k
       pretrained: true
 
 data:
