@@ -39,6 +39,10 @@
 # %pip install uv
 # !uv pip install --system -e .
 
+# %% [markdown]
+# If you encounter a "Module not found..." error upon import `jute_disease`  below, you can simply restart the
+# > continue
+
 # %% id="29c4c90c"
 # ruff: noqa: T201
 from jute_disease.utils.constants import DEFAULT_SEED
