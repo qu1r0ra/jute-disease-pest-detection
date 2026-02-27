@@ -25,7 +25,8 @@ def run_grid_search(
         if not base_config_path.exists():
             raise ValueError(
                 f"Base config not found at {base_config_path}. "
-                "Ensure your grid file is named <model_name>_grid.yaml or pass --base-config."
+                "Ensure your grid file is named <model_name>_grid.yaml "
+                "or pass --base-config."
             )
 
     model_name = Path(base_config_path).stem.capitalize()
