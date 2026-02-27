@@ -49,8 +49,10 @@ from pathlib import Path
 
 # Force the Colab kernel to see our local codebase without restarting
 project_root = Path.cwd().resolve()
-if str(project_root) not in sys.path:
-    sys.path.append(str(project_root))
+src_dir = project_root / "src"
+if str(src_dir) not in sys.path:
+    sys.path.append(str(src_dir))
+
 
 from jute_disease.utils.constants import DEFAULT_SEED
 from jute_disease.utils.seed import seed_everything
