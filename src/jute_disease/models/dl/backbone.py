@@ -36,16 +36,16 @@ class TimmBackbone(nn.Module):
             state_dict = checkpoint.get("state_dict", checkpoint)
 
             backbone_dict = {}
+            prefixes = ("feature_extractor.", "_orig_mod.", "backbone.")
             for k, v in state_dict.items():
-                if k.startswith("feature_extractor.backbone."):
-                    name = k.replace("feature_extractor.backbone.", "")
-                elif k.startswith("feature_extractor."):
-                    name = k.replace("feature_extractor.", "")
-                else:
-                    name = k
-
-                if name.startswith("_orig_mod."):
-                    name = name.replace("_orig_mod.", "")
+                name = k
+                changed = True
+                while changed:
+                    changed = False
+                    for prefix in prefixes:
+                        if name.startswith(prefix):
+                            name = name[len(prefix) :]
+                            changed = True
 
                 backbone_dict[name] = v
 
