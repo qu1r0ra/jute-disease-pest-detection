@@ -1,5 +1,7 @@
 dropout_rates:
+  - 0.0
   - 0.1
+  - 0.2
   - 0.3
 
 transfer_learning_levels:

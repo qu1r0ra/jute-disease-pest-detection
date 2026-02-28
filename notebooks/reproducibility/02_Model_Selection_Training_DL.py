@@ -40,7 +40,7 @@
 # !uv sync
 
 # %% [markdown] id="26255b47"
-# If you encounter `ModuleNotFoundError`, you can simply restart the session and rerun the notebook from the very first cell.
+# If you encounter `ModuleNotFoundError`, you can simply restart the session and rerun the cell below.
 
 # %% id="cd6910a8"
 # ruff: noqa: T201
