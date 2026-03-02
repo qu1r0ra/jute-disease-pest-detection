@@ -1,6 +1,6 @@
 # jute-disease-detection <!-- omit from toc -->
 
-![title](./readme/title.png)
+![title](./assets/readme/title.png)
 
 <!-- Refer to https://shields.io/badges for usage -->
 
@@ -12,28 +12,80 @@ An exploration of deep learning on merged jute leaf disease datasets. Created fo
 ## Table of Contents <!-- omit from toc -->
 
 - [1. Introduction](#1-introduction)
-- [2. Running the Project](#2-running-the-project)
-  - [2.1. Prerequisites](#21-prerequisites)
-  - [2.2. Reproducing the Results](#22-reproducing-the-results)
-- [3. References](#3-references)
+- [2. Project Structure](#2-project-structure)
+- [3. Running the Project](#3-running-the-project)
+  - [3.1. Prerequisites](#31-prerequisites)
+  - [3.2. CLI Entry Points](#32-cli-entry-points)
+  - [3.3. Reproducing the Results](#33-reproducing-the-results)
+- [4. References](#4-references)
 
 ## 1. Introduction
 
 To be written.
 
-## 2. Running the Project
+## 2. Project Structure
 
-### 2.1. Prerequisites
+A high-level overview of the repository organization:
+
+```text
+.
+├── artifacts/          # Generated checkpoints, models, and logs
+├── configs/            # Training configurations (.yaml) for Lightning CLI
+├── docs/               # Technical documentation
+│   ├── agents/         # AI agent-specific directives
+│   └── ARCHITECTURE.md # Core technical design
+├── notebooks/          # Jupyter notebooks for EDA and analysis
+├── scripts/            # Automation scripts (batch training, grid search)
+├── src/
+│   ├── annotator/      # Image annotation tool (Flask)
+│   └── jute_disease/   # Main package
+│       ├── data/       # DataModules, Transforms, Datasets
+│       ├── engines/    # Entry points (DL CLI, ML Training)
+│       ├── models/     # Model architectures (e.g., MobileNetV2, RF, SVM)
+│       └── utils/      # Logging, Seeding, Constants
+└── tests/              # Structured test suite
+    ├── annotator/      # Tests for the web app
+    └── jute_disease/   # Tests for the core library
+└── AGENTS.md           # AI assistant entry point
+```
+
+For a detailed look at the internal design, public APIs, and architectural decisions, see [ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## 3. Running the Project
+
+### 3.1. Prerequisites
 
 To reproduce our results, you will need the following installed:
 
 1. **Git:** Used to clone this repository.
 
-2. **Python:** We require Python `3.11.14` for this project. You do not need to install the specific version as it will be installed by `uv`.
+2. **Python:** We require Python `>=3.11` for this project. You do not need to install the specific version as it will be installed by `uv`.
 
 3. **uv:** The package manager we used. Installation instructions can be found at <https://docs.astral.sh/uv/getting-started/installation/>.
 
-### 2.2. Reproducing the Results
+### 3.2. CLI Entry Points
+
+This project provides unified CLI entry points for common tasks:
+
+- **`scripts/train_dl.py`**: Entry point for the Deep Learning engine (Lightning CLI).
+
+  ```bash
+  uv run python scripts/train_dl.py fit --config configs/baselines/mobilenet_v2.yaml
+  ```
+
+- **`make train-ml`**: Entry point for the Machine Learning engine sweep. Or run manually via `uv run python scripts/train_ml.py`.
+
+  ```bash
+  uv run python scripts/train_ml.py --classifier rf --feature_type crafted
+  ```
+
+- **`make grid-search`** and **`make grid-search-finetune`**: Command wrappers to execute Phase 1 (Transfer Learning / Dropout) and Phase 2 (Optimizers) grid searches for the deep learning champion model. (Append `-check` to run a 1-batch validation `fast_dev_run`).
+
+  ```bash
+  make grid-search
+  ```
+
+### 3.3. Reproducing the Results
 
 1. Clone this repository:
 
@@ -41,9 +93,10 @@ To reproduce our results, you will need the following installed:
    git clone https://github.com/qu1r0ra/jute-disease-detection
    ```
 
-2. Navigate to the project root and install all required dependencies:
+2. Navigate to the project root and install all dependencies:
 
    ```bash
+   cd jute-disease-detection
    uv sync
    ```
 
@@ -56,6 +109,6 @@ To reproduce our results, you will need the following installed:
    - When running a notebook, select `.venv` in root as the kernel.
    - More instructions can be found in each notebook.
 
-## 3. References
+## 4. References
 
 [1] Md. M. Islam and Md. R. Sheikh, “A comprehensive image dataset of jute diseases,” _Data in Brief_, vol. 64, p. 112334, Feb. 2026. DOI: [10.1016/j.dib.2025.112334](https://doi.org/10.1016/j.dib.2025.112334).

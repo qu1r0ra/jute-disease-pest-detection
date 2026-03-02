@@ -7,23 +7,10 @@ on:
     branches: [main]
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Install uv
-        with:
-          version: "latest"
-        uses: astral-sh/setup-uv@v7
-
-      - name: Lint with Ruff
-        run: |
-          uvx ruff check .
-          uvx ruff format --check .
   test:
-    needs: lint
     runs-on: ubuntu-latest
+    env:
+      WANDB_MODE: disabled
     strategy:
       matrix:
         python-version: ["3.11"]

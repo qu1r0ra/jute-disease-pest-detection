@@ -1,0 +1,19 @@
+learning_rate:
+  - 0.005  # Higher LR
+  - 0.001  # Baseline LR
+  - 0.0005 # Lower LR
+
+weight_decay:
+  - 0.1    # High WD
+  - 0.05   # Baseline WD
+  - 0.01   # Low WD
+
+locked_params:
+  name: "level_1_imagenet"
+  weights_path: "imagenet"
+  dropout_rate: 0.0
+
+fixed_params:
+  num_folds: 1
+  batch_size: 32
+  max_epochs: 50

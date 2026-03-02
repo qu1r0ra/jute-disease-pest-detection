@@ -1,4 +1,4 @@
-.PHONY: help train cli lint format test clean setup-colab setup-hooks
+.PHONY: help data setup-data split-data train-ml train-dl train-dl-check test test-all lint format clean sync-nb
 
 ifeq (, $(shell which uv))
     PYTHON = python3
@@ -10,58 +10,96 @@ endif
 
 help:
 	@echo "Available commands:"
-	@echo "  make init-data    - Initialize everything: setup folders, split data, and download external sets"
-	@echo "  make setup-data   - Create target folder structure"
-	@echo "  make split-data   - Split data from by_class into ml_split"
-	@echo "  make train        - Run manual training"
-	@echo "  make cli          - Run LightningCLI training"
-	@echo "  make lint         - Run linting (ruff check)"
-	@echo "  make format       - Run formatting (ruff format)"
-	@echo "  make test         - Run tests"
-	@echo "  make pre-commit   - Run all pre-commit hooks"
-	@echo "  make setup-hooks  - Install pre-commit hooks"
+	@echo "  make data         		- Initialize data (download & split)"
+	@echo "  make train-ml     		- Run all classical ML experiments"
+	@echo "  make train-dl     		- Run all DL experiments"
+	@echo "  make train-dl-single   - Run training for a single DL model (MODEL=<model_name>)"
+	@echo "  make train-dl-check 	- Run all DL experiments with fast dev run"
+	@echo "  make train-dl-check-single MODEL=<model_name> - Run fast dev run for a single DL model"
+	@echo "  make train-cv     		- Run cross-validation for a specific model (default 5 folds)"
+	@echo "  make grid-search  		- Run Phase 1 grid search for Transfer Learning/Dropout"
+	@echo "  make grid-search-check	- Run Phase 1 grid search using fast_dev_run"
+	@echo "  make grid-search-finetune 	- Run Phase 2 fine-tuning grid search for Learning Rate/Weight Decay"
+	@echo "  make grid-search-finetune-check - Run Phase 2 fine-tuning grid search using fast_dev_run"
+	@echo "  make pretrain     		- Run pre-training script on external data"
+	@echo "  make test         		- Run fast tests (slow tests skipped by default)"
+	@echo "  make test-all     		- Run all tests including slow ones"
+	@echo "  make lint         		- Run linting (ruff check)"
+	@echo "  make format       		- Run formatting (ruff format)"
+	@echo "  make clean        		- Remove temporary files and logs"
+	@echo "  make clean-artifacts  	- Remove all generated artifacts (models, checkpoints)"
+	@echo "  make clean-ml     		- Remove ML models and extracted features from artifacts"
+	@echo "  make sync-nb    		- Sync Jupyter Notebooks (.ipynb) with Jupytext (.py) scripts"
 
-init-data:
-	$(PYTHON) -m jute_disease_pest.utils.data init
+data:
+	$(PYTHON) src/jute_disease/data/utils.py init
 
 setup-data:
-	$(PYTHON) -m jute_disease_pest.utils.data setup
+	$(PYTHON) src/jute_disease/data/utils.py setup
 
 split-data:
-	$(PYTHON) -m jute_disease_pest.utils.data split
+	$(PYTHON) src/jute_disease/data/utils.py split
 
-train:
-	$(PYTHON) -m jute_disease_pest.engines.train
+train-ml:
+	$(PYTHON) scripts/train_all_ml.py
 
-cli:
-	$(PYTHON) -m jute_disease_pest.engines.cli
+train-dl:
+	$(PYTHON) scripts/train_all_dl.py
 
-lint:
-	$(PYTHON) -m ruff check .
+train-dl-single:
+	$(PYTHON) scripts/train_all_dl.py --config configs/baselines/$(MODEL).yaml
 
-format:
-	$(PYTHON) -m ruff check --fix . && $(PYTHON) -m ruff format .
+train-dl-check:
+	$(PYTHON) scripts/train_all_dl_check.py
 
-pre-commit:
-	uv tool run pre-commit run --all-files
+train-dl-check-single:
+	$(PYTHON) scripts/train_all_dl_check.py --config configs/baselines/$(MODEL).yaml
 
-setup-hooks:
-	uv tool run pre-commit install
+train-cv:
+	$(PYTHON) scripts/train_cross_validation.py configs/baselines/mobilenet_v2.yaml --folds 5
+
+grid-search:
+	$(PYTHON) scripts/run_grid_search.py configs/grid/mobilenet_v2_grid.yaml
+
+grid-search-check:
+	$(PYTHON) scripts/run_grid_search.py configs/grid/mobilenet_v2_grid.yaml --fast-dev-run
+
+grid-search-finetune:
+	$(PYTHON) scripts/run_grid_search.py configs/grid/mobilenet_v2_finetune_grid.yaml --base-config configs/baselines/mobilenet_v2.yaml
+
+grid-search-finetune-check:
+	$(PYTHON) scripts/run_grid_search.py configs/grid/mobilenet_v2_finetune_grid.yaml --base-config configs/baselines/mobilenet_v2.yaml --fast-dev-run
+
+pretrain:
+	$(PYTHON) src/jute_disease/engines/dl/pretrain.py \
+		--data_dir data/external/plant_village \
+		--output_path artifacts/checkpoints/pretrained/mobilenet_v2-plantvillage.ckpt \
+		--epochs 5
 
 test:
-	$(PYTHON) -m pytest
+	uv run pytest -v -s
 
-predict:
-	$(PYTHON) -m jute_disease_pest.engines.predict
+test-all:
+	uv run pytest -v -s -m ''
+
+lint:
+	uv run ruff check .
+
+format:
+	uv run ruff check --fix . && uv run ruff format .
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type d -name ".pytest_cache" -exec rm -rf {} +
 	find . -type d -name ".ruff_cache" -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
+	rm -rf .coverage htmlcov lightning_logs wandb
 
-run-app:
-	$(PYTHON) -m annotator.run
+clean-artifacts:
+	rm -rf artifacts/ml_models artifacts/checkpoints artifacts/logs artifacts/features
 
-ingest:
-	$(PYTHON) -m annotator.utils.indexing
+clean-ml:
+	rm -rf artifacts/ml_models artifacts/features
+
+sync-nb:
+	uv run jupytext --sync notebooks/reproducibility/*.py
