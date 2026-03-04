@@ -18,9 +18,9 @@ def _get_modified_base_config(base_config_path: str | Path, exp_name: str) -> st
 
     for cb in config.get("trainer", {}).get("callbacks", []):
         if "ModelCheckpoint" in cb.get("class_path", ""):
-            cb.setdefault("init_args", {})[
-                "dirpath"
-            ] = f"artifacts/checkpoints/{exp_name}"
+            cb.setdefault("init_args", {})["dirpath"] = (
+                f"artifacts/checkpoints/{exp_name}"
+            )
 
     temp_dir = Path("artifacts/checkpoints/.temp_configs")
     temp_dir.mkdir(parents=True, exist_ok=True)
