@@ -25,10 +25,8 @@
 # This allows us to verify where our model is systematically failing, and check whether it's struggling with certain class overlaps (e.g., Macrophomina vs. Stem Rot) or fundamental dataset labeling quality, before we invest further compute in finding the perfect gradient descent parameters.
 
 # %%
-import wandb
 import IPython.display
 
-# Replace with the exact URL of your MobileNetV2 Phase 2a Champion run to inspect its Confusion Matrix payload natively
 IPython.display.IFrame(
     src="https://wandb.ai/grade-descent/jute-disease-detection",
     width="100%",
