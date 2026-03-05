@@ -30,6 +30,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 import numpy as np
+from jute_disease.utils import get_logger
+
+logger = get_logger("AnalysisNoteBook")
 
 # 1. Load Consolidated Metrics
 metrics_path = Path("../../artifacts/grid_search_mobilenet_v2_phase1_metrics.csv")
@@ -38,10 +41,11 @@ if metrics_path.exists():
     champion_name = "mobilenet_v2-l1_imagenet-dr_0.1"
     champion_row = df[df["Experiment"] == champion_name]
 
-    print("--- Champion Quantitative Performance ---")
+    # Champion Quantitative Performance
+    logger.info("--- Champion Quantitative Performance ---")
     display(champion_row)
 else:
-    print("Metrics summary not found.")
+    logger.warning("Metrics summary not found.")
 
 # 2. Load Training History for Curves
 history_dir = Path("../../artifacts/logs/mobilenet_v2-l1_imagenet-dr_0.1")
@@ -49,7 +53,8 @@ history_files = list(history_dir.glob("version_*/metrics.csv"))
 if history_files:
     dfs = [pd.read_csv(f) for f in history_files]
     history = pd.concat(dfs, ignore_index=True)
-    # Aggregate by epoch (taking max for accuracies/losses since lightning logs multiple steps)
+    # Aggregate by epoch (taking max for accuracies/losses)
+    # Lightning logs multiple steps, so we group by epoch
     agg_dict = {}
     for col in history.columns:
         if "loss" in col:
@@ -87,7 +92,7 @@ if history_files:
     plt.tight_layout()
     plt.show()
 else:
-    print("Training history not found.")
+    logger.warning("Training history not found.")
 
 # %% [markdown]
 # ### B. Error Analysis
@@ -132,7 +137,7 @@ start_time = time.time()
 loaders = [("Val", val_loader), ("Test", test_loader)]
 
 with torch.no_grad():
-    for name, loader in loaders:
+    for _, loader in loaders:
         for x, y in loader:
             x = x.to(device)
             # Extract features
@@ -148,8 +153,8 @@ with torch.no_grad():
 end_time = time.time()
 total_imgs = len(pooled_dataset)
 inf_time_per_img = (end_time - start_time) / total_imgs
-print(f"Total images processed: {total_imgs}")
-print(f"Inference time per image: {inf_time_per_img*1000:.2f} ms")
+logger.info(f"Total images processed: {total_imgs}")
+logger.info(f"Inference time per image: {inf_time_per_img*1000:.2f} ms")
 
 features = torch.cat(all_features).numpy()
 preds = torch.cat(all_preds).numpy()
@@ -230,7 +235,8 @@ if len(wrong_indices) > 0:
         plt.subplot(2, 5, i + 1)
         plt.imshow(img_disp)
         plt.title(
-            f"Pred: {dm.classes[preds[idx]]} ({probs[idx, preds[idx]]:.2f})\nActual: {dm.classes[targets[idx]]}",
+            f"Pred: {dm.classes[preds[idx]]} ({probs[idx, preds[idx]]:.2f})\n"
+            f"Actual: {dm.classes[targets[idx]]}",
             color="red",
             fontsize=10,
         )
@@ -238,7 +244,7 @@ if len(wrong_indices) > 0:
     plt.suptitle("Top 10 Most Confident Incorrect Predictions", fontsize=16)
     plt.show()
 else:
-    print("No errors found in test set!")
+    logger.info("No errors found in test set!")
 
 # %% [markdown]
 # ### C. Model Interpretability
@@ -308,6 +314,17 @@ plt.suptitle(
 )
 plt.tight_layout()
 plt.show()
+
+# %% [markdown]
+# ### D. High-Resolution Experiment (512x512)
+# We test if increasing the input resolution from 256 to 512 improves the feature extraction capabilities for fine-grained disease patterns.
+#
+# We use the specialized `dl_train_transforms_512` and `dl_val_transforms_512` that we added to the project's data pipeline.
+#
+# ```bash
+# # Run this in your terminal to train the 512px model
+# make train-dl-512
+# ```
 
 # %% [markdown]
 # ## Phase 2: Optimizer Grid Search

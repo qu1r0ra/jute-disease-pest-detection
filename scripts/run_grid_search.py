@@ -80,9 +80,9 @@ def _get_modified_base_config(
 
     for cb in trainer_cfg.get("callbacks", []):
         if "ModelCheckpoint" in cb.get("class_path", ""):
-            cb.setdefault("init_args", {})[
-                "dirpath"
-            ] = f"artifacts/checkpoints/{exp_name}"
+            cb.setdefault("init_args", {})["dirpath"] = (
+                f"artifacts/checkpoints/{exp_name}"
+            )
 
     # Explicitly define WandbLogger properties to avoid CLI CSVLogger crashes
     loggers = trainer_cfg.get("logger", [])
