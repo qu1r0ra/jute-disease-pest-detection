@@ -35,14 +35,12 @@ def _aggregate_metrics(exp_names: list[str], output_csv: Path) -> None:
 
         df = pd.read_csv(metrics_file)
 
-        # Extract best validation epoch metrics (min val_loss)
         val_df = df.dropna(subset=["val_loss"])
         if not val_df.empty:
             best_val = val_df.loc[val_df["val_loss"].idxmin()].to_dict()
         else:
             best_val = {}
 
-        # Extract test metrics
         test_df = df.dropna(subset=["test_loss"])
         if not test_df.empty:
             test_metrics = test_df.iloc[-1].to_dict()
@@ -51,7 +49,6 @@ def _aggregate_metrics(exp_names: list[str], output_csv: Path) -> None:
 
         summary = {"Experiment": exp}
 
-        # Filter metrics
         for key, val in best_val.items():
             if key.startswith("val_") or key.startswith("train_"):
                 summary[key] = val
@@ -70,24 +67,32 @@ def _aggregate_metrics(exp_names: list[str], output_csv: Path) -> None:
         logger.warning(f"No metrics found to export to {output_csv}")
 
 
-def _get_modified_base_config(base_config_path: str | Path, exp_name: str) -> str:
-    """Read base config, update ModelCheckpoint dirpath, and append CSVLogger."""
+def _get_modified_base_config(
+    base_config_path: str | Path, exp_name: str, wandb_group: str
+) -> str:
+    """Read base config, update loggers/checkpoints, and return temp path."""
     with open(base_config_path) as f:
         config = yaml.safe_load(f) or {}
 
     trainer_cfg = config.setdefault("trainer", {})
 
-    # Update ModelCheckpoint dirpath
     for cb in trainer_cfg.get("callbacks", []):
         if "ModelCheckpoint" in cb.get("class_path", ""):
             cb.setdefault("init_args", {})["dirpath"] = (
                 f"artifacts/checkpoints/{exp_name}"
             )
 
-    # Append CSVLogger for local metric extraction
+    # Explicitly define WandbLogger properties to avoid CLI CSVLogger crashes
     loggers = trainer_cfg.get("logger", [])
     if isinstance(loggers, dict):
         loggers = [loggers]
+
+    for logger_cfg in loggers:
+        if "WandbLogger" in logger_cfg.get("class_path", ""):
+            init_args = logger_cfg.setdefault("init_args", {})
+            init_args["name"] = exp_name
+            init_args["group"] = wandb_group
+
     loggers.append(
         {
             "class_path": "lightning.pytorch.loggers.CSVLogger",
@@ -138,7 +143,7 @@ def run_grid_search(
 
     fixed_params = grid_config.get("fixed_params", {})
 
-    # Detect Mode: Phase 1 (Transfer Search) or Phase 2 (Optimizer Fine-Tuning)
+    # Detect Mode: Phase 1 or Phase 2
     is_phase_two = len(learning_rates) > 0 and len(weight_decays) > 0
 
     if is_phase_two:
@@ -158,15 +163,18 @@ def run_grid_search(
                 ckpt_arg = weights_path if weights_path != "imagenet" else "null"
                 pretrained_arg = str(weights_path == "imagenet")
 
-                # Setup Shared WandB Run ID so fit and test map to the same dashboard
+                # Share WandB Run ID between fit and test
                 run_id = wandb.util.generate_id()
                 env = os.environ.copy()
                 env["WANDB_RUN_ID"] = run_id
 
                 short_level = level_name.replace("level_", "l")
                 exp_name = f"{model_name.lower()}-{short_level}-lr_{lr}-wd_{wd}"
+                wandb_group = f"{model_name}_Finetune_Grid"
                 run_exp_names.append(exp_name)
-                exp_config_path = _get_modified_base_config(base_config_path, exp_name)
+                exp_config_path = _get_modified_base_config(
+                    base_config_path, exp_name, wandb_group
+                )
 
                 cmd = [
                     "uv",
@@ -181,8 +189,6 @@ def run_grid_search(
                     f"--model.feature_extractor.init_args.drop_rate={dropout}",
                     f"--model.lr={lr}",
                     f"--model.weight_decay={wd}",
-                    f"--trainer.logger.init_args.name={exp_name}",
-                    f"--trainer.logger.init_args.group={model_name}_Finetune_Grid",
                 ]
 
                 if "num_folds" in fixed_params:
@@ -224,8 +230,6 @@ def run_grid_search(
                     exp_config_path,
                     "--ckpt_path",
                     str(best_ckpt),
-                    f"--trainer.logger.init_args.name={exp_name}",
-                    f"--trainer.logger.init_args.group={model_name}_Finetune_Grid",
                 ]
 
                 logger.info(f"Command (Test): {' '.join(test_cmd)}")
@@ -263,8 +267,11 @@ def run_grid_search(
 
             short_level = level_name.replace("level_", "l")
             exp_name = f"{model_name.lower()}-{short_level}-dr_{dropout}"
+            wandb_group = f"{model_name}_Transfer_Grid"
             run_exp_names.append(exp_name)
-            exp_config_path = _get_modified_base_config(base_config_path, exp_name)
+            exp_config_path = _get_modified_base_config(
+                base_config_path, exp_name, wandb_group
+            )
 
             cmd = [
                 "uv",
@@ -277,8 +284,6 @@ def run_grid_search(
                 f"--model.feature_extractor.init_args.checkpoint_path={ckpt_arg}",
                 f"--model.feature_extractor.init_args.pretrained={pretrained_arg}",
                 f"--model.feature_extractor.init_args.drop_rate={dropout}",
-                f"--trainer.logger.init_args.name={exp_name}",
-                f"--trainer.logger.init_args.group={model_name}_Transfer_Grid",
             ]
 
             if "learning_rate" in fixed_params:
@@ -324,8 +329,6 @@ def run_grid_search(
                 exp_config_path,
                 "--ckpt_path",
                 str(best_ckpt),
-                f"--trainer.logger.init_args.name={exp_name}",
-                f"--trainer.logger.init_args.group={model_name}_Transfer_Grid",
             ]
 
             logger.info(f"Command (Test): {' '.join(test_cmd)}")
