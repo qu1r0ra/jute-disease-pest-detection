@@ -8,12 +8,16 @@ trainer:
   max_epochs: 50
   log_every_n_steps: 25
   logger:
-    class_path: lightning.pytorch.loggers.WandbLogger
-    init_args:
-      project: jute-disease-detection
-      entity: grade-descent
-      name: resnet_50
-      log_model: true
+    - class_path: lightning.pytorch.loggers.WandbLogger
+      init_args:
+        project: jute-disease-detection
+        entity: grade-descent
+        name: resnet_50
+        log_model: true
+    - class_path: lightning.pytorch.loggers.CSVLogger
+      init_args:
+        save_dir: artifacts/logs
+        name: resnet_50
   callbacks:
     - class_path: lightning.pytorch.callbacks.LearningRateMonitor
       init_args:
