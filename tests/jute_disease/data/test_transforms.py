@@ -2,7 +2,14 @@ import numpy as np
 import torch
 from PIL import Image
 
+from jute_disease.data import (
+    dl_train_transforms,
+    dl_val_transforms,
+    ml_train_transforms,
+    ml_val_transforms,
+)
 from jute_disease.data.transforms import create_pipeline
+from jute_disease.utils import IMAGE_SIZE
 
 
 def test_create_pipeline_ml():
@@ -49,3 +56,30 @@ def test_pipeline_seed_consistency():
     out2 = pipeline2(img)
 
     assert torch.allclose(out1, out2)
+
+
+# --- Global Instance Integration Tests ---
+
+
+def test_global_ml_transforms():
+    """Verify that global ML transforms are correctly instantiated."""
+    img = Image.fromarray(np.random.randint(0, 256, (300, 300, 3), dtype=np.uint8))
+
+    train_out = ml_train_transforms(img)
+    val_out = ml_val_transforms(img)
+
+    assert train_out.shape == (IMAGE_SIZE, IMAGE_SIZE, 3)
+    assert val_out.shape == (IMAGE_SIZE, IMAGE_SIZE, 3)
+    assert isinstance(train_out, np.ndarray)
+
+
+def test_global_dl_transforms():
+    """Verify that global DL transforms are correctly instantiated."""
+    img = Image.fromarray(np.random.randint(0, 256, (300, 300, 3), dtype=np.uint8))
+
+    train_out = dl_train_transforms(img)
+    val_out = dl_val_transforms(img)
+
+    assert train_out.shape == (3, IMAGE_SIZE, IMAGE_SIZE)
+    assert val_out.shape == (3, IMAGE_SIZE, IMAGE_SIZE)
+    assert isinstance(train_out, torch.Tensor)
