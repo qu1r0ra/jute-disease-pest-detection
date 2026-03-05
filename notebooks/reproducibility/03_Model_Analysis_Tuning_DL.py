@@ -14,93 +14,272 @@
 
 # %% [markdown]
 # # Deep Learning Model Analysis and Fine-Tuning
+#
+# This notebook covers the detailed evaluation of the Phase 1 champion model, followed by Phase 2 optimizer fine-tuning. We follow the structure outlined in the paper for reporting results.
 
 # %% [markdown]
-# ## 1. Introduction and Baseline Review
-# In the previous notebook, we trained a variety of deep learning baselines and performed a Phase 1 grid search on Transfer Learning initialization strategies for our champion, MobileNetV2.
+# ## IV. EXPERIMENTS AND RESULTS
 #
-# ## 2. Phase 1: Grid Search Results Analysis
-# We have completed the Phase 1 grid search which focused on choosing the best transfer learning initialization. Let's analyze the consolidated results from our local metrics backup.
+# ### A. Quantitative Performance
+# We summarize the performance metrics and visualize the training dynamics of our Phase 1 champion: **MobileNetV2 (ImageNet + 0.1 Dropout)**.
 
 # %%
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
+import numpy as np
 
+# 1. Load Consolidated Metrics
 metrics_path = Path("../../artifacts/grid_search_mobilenet_v2_phase1_metrics.csv")
 if metrics_path.exists():
     df = pd.read_csv(metrics_path)
-    
-    # Display Top 5 by Test Accuracy
-    print("Top 5 Configurations (Sorted by Test Accuracy):")
-    display(df.sort_values("test_acc", ascending=False).head(5))
-    
-    # Performance Visualization
-    plt.figure(figsize=(14, 6))
-    sns.barplot(data=df.sort_values("test_acc"), x="Experiment", y="test_acc", palette="viridis")
-    plt.xticks(rotation=45, ha='right')
-    plt.title("Phase 1 Grid Search: Test Accuracy Comparison")
-    plt.ylim(0.7, 0.95)
-    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    champion_name = "mobilenet_v2-l1_imagenet-dr_0.1"
+    champion_row = df[df["Experiment"] == champion_name]
+
+    print("--- Champion Quantitative Performance ---")
+    display(champion_row)
+else:
+    print("Metrics summary not found.")
+
+# 2. Load Training History for Curves
+history_path = Path(
+    "../../artifacts/logs/mobilenet_v2-l1_imagenet-dr_0.1/version_0/metrics.csv"
+)
+if history_path.exists():
+    history = pd.read_csv(history_path)
+    # Aggregate by epoch (taking max for accuracies/losses since lightning logs multiple steps)
+    epoch_data = (
+        history.groupby("epoch")
+        .agg(
+            {
+                "train_loss": "mean",
+                "val_loss": "mean",
+                "train_acc": "max",
+                "val_acc": "max",
+            }
+        )
+        .dropna()
+    )
+
+    fig, ax = plt.subplots(1, 2, figsize=(15, 5))
+
+    # Loss Curves
+    epoch_data[["train_loss", "val_loss"]].plot(ax=ax[0])
+    ax[0].set_title("Training and Validation Loss")
+    ax[0].set_xlabel("Epoch")
+    ax[0].grid(True, alpha=0.3)
+
+    # Accuracy Curves
+    epoch_data[["train_acc", "val_acc"]].plot(ax=ax[1])
+    ax[1].set_title("Training and Validation Accuracy")
+    ax[1].set_xlabel("Epoch")
+    ax[1].grid(True, alpha=0.3)
+
     plt.tight_layout()
     plt.show()
 else:
-    print(f"Metrics not found at {metrics_path}. Please run recovery script if needed.")
+    print("Training history not found.")
 
 # %% [markdown]
-# ## 3. Preliminary Error Analysis (Phase 1 Champion)
-# Before proceeding with optimizer fine-tuning (Phase 2), we analyze the errors of our current best model (ImageNet Level 1). We will load the champion checkpoint and evaluate it explicitly on the test set to generate a detailed classification report and confusion matrix.
+# ### B. Error Analysis
+# We perform t-SNE embedding analysis to visualize model separability and inspect the top confident errors.
 
 # %%
 import torch
-from lightning.pytorch import Trainer
+import torch.nn.functional as F
+from torch.utils.data import DataLoader
+from sklearn.manifold import TSNE
 from sklearn.metrics import classification_report, confusion_matrix
 from jute_disease.models.dl.classifier import Classifier
 from jute_disease.models.dl.backbone import TimmBackbone
 from jute_disease.data.datamodule import DataModule
+import time
 
-# 1. Setup Data
+# Setup Data and Model
 dm = DataModule(data_dir="../../data/ml_split", batch_size=32)
 dm.setup("test")
+dm.setup("fit")
+val_loader = dm.val_dataloader()
+test_loader = dm.test_dataloader()
 
-# 2. Identify and Load Champion Checkpoint
-# Note: Update this path to your actual champion file if it differs
 champion_dir = Path("../../artifacts/checkpoints/mobilenet_v2-l1_imagenet-dr_0.1")
-ckpts = list(champion_dir.glob("*.ckpt"))
-if ckpts:
-    ckpt_path = ckpts[0]
-    print(f"Loading champion from {ckpt_path}")
-    
-    backbone = TimmBackbone(model_name="mobilenetv2_100")
-    model = Classifier.load_from_checkpoint(ckpt_path, feature_extractor=backbone)
-    model.eval()
-    
-    # 3. Inference
-    trainer = Trainer(accelerator="auto")
-    preds_list = trainer.predict(model, dataloaders=dm.test_dataloader())
-    
-    all_preds = torch.cat(preds_list).argmax(dim=-1).numpy()
-    all_targets = torch.cat([batch[1] for batch in dm.test_dataloader()]).numpy()
-    
-    # 4. Detailed Reports
-    print("\nClassification Report:")
-    print(classification_report(all_targets, all_preds, target_names=dm.classes))
-    
-    # 5. Confusion Matrix Visualization
-    plt.figure(figsize=(10, 8))
-    cm = confusion_matrix(all_targets, all_preds)
-    sns.heatmap(cm, annot=True, fmt='d', xticklabels=dm.classes, yticklabels=dm.classes, cmap='Blues')
-    plt.ylabel('Ground Truth')
-    plt.xlabel('Predicted Label')
-    plt.title('Champion Confusion Matrix: Phase 1 Finalist')
-    plt.show()
-else:
-    print("No checkpoints found in champion directory.")
+ckpt_path = list(champion_dir.glob("*.ckpt"))[0]
+backbone = TimmBackbone(model_name="mobilenetv2_100")
+model = Classifier.load_from_checkpoint(ckpt_path, feature_extractor=backbone)
+model.eval()
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model.to(device)
+
+# Inference and Time Tracking
+all_features = []
+all_preds = []
+all_targets = []
+all_probs = []
+start_time = time.time()
+
+# Pool Val and Test for broader analysis
+loaders = [("Val", val_loader), ("Test", test_loader)]
+
+with torch.no_grad():
+    for name, loader in loaders:
+        for x, y in loader:
+            x = x.to(device)
+            # Extract features
+            feat = model.feature_extractor(x)
+            logits = model.classifier(feat)
+            probs = F.softmax(logits, dim=1)
+
+            all_features.append(feat.cpu())
+            all_probs.append(probs.cpu())
+            all_preds.append(logits.argmax(dim=1).cpu())
+            all_targets.append(y)
+
+end_time = time.time()
+print(f"Total images processed: {len(torch.cat(all_targets))}")
+
+features = torch.cat(all_features).numpy()
+preds = torch.cat(all_preds).numpy()
+targets = torch.cat(all_targets).numpy()
+probs = torch.cat(all_probs).numpy()
 
 # %% [markdown]
-# ## 4. Phase 2: Optimizer Fine-Tuning Grid Search (MobileNetV2)
-# With our baseline errors confirmed as expected architectural characteristics (and not systemic labeling bugs), we can comfortably execute Phase 2. We will sweep across standard Learning Rates and Weight Decays to squeeze the ultimate convergence trajectory out of our Jute dataset.
+# #### t-SNE Feature Embeddings
+# We visualize the high-dimensional feature vectors to see how well the classes are separated in latent space (Val + Test).
 
 # %%
-# !make grid-search-finetune
+tsne = TSNE(n_components=2, perplexity=30, random_state=42)
+feat_2d = tsne.fit_transform(features)
+
+plt.figure(figsize=(12, 8))
+for i, cls in enumerate(dm.classes):
+    mask = targets == i
+    plt.scatter(
+        feat_2d[mask, 0], feat_2d[mask, 1], label=cls, alpha=0.6, edgecolors="w", s=60
+    )
+
+plt.legend()
+plt.title("t-SNE Visualization of Champion Model Latent Features (Val + Test)")
+plt.xlabel("t-SNE 1")
+plt.ylabel("t-SNE 2")
+plt.show()
+
+# %% [markdown]
+# #### UMAP Feature Embeddings
+# We also compute UMAP embeddings, which often preserve more global structure than t-SNE (Val + Test).
+
+# %%
+import umap
+
+reducer = umap.UMAP(n_neighbors=15, min_dist=0.1, n_components=2, random_state=42)
+feat_umap = reducer.fit_transform(features)
+
+plt.figure(figsize=(12, 8))
+for i, cls in enumerate(dm.classes):
+    mask = targets == i
+    plt.scatter(
+        feat_umap[mask, 0],
+        feat_umap[mask, 1],
+        label=cls,
+        alpha=0.6,
+        edgecolors="w",
+        s=60,
+    )
+
+plt.legend()
+plt.title("UMAP Visualization of Champion Model Latent Features (Val + Test)")
+plt.xlabel("UMAP 1")
+plt.ylabel("UMAP 2")
+plt.show()
+
+# %% [markdown]
+# #### Top 10 Most Confident Errors
+# We inspect images where the model was highly confident but incorrect.
+
+# %%
+is_wrong = preds != targets
+wrong_indices = np.where(is_wrong)[0]
+
+if len(wrong_indices) > 0:
+    # Prob of the predicted (wrong) class
+    wrong_probs = [probs[i, preds[i]] for i in wrong_indices]
+    sorted_wrong = np.argsort(wrong_probs)[::-1][:10]
+    top_wrong_idx = wrong_indices[sorted_wrong]
+
+    plt.figure(figsize=(20, 10))
+    for i, idx in enumerate(top_wrong_idx):
+        img, label = test_loader.dataset[idx]
+        img_disp = img.permute(1, 2, 0).numpy()
+        img_disp = (
+            img_disp * np.array([0.229, 0.224, 0.225]) + np.array([0.485, 0.456, 0.406])
+        ).clip(0, 1)
+
+        plt.subplot(2, 5, i + 1)
+        plt.imshow(img_disp)
+        plt.title(
+            f"Pred: {dm.classes[preds[idx]]} ({probs[idx, preds[idx]]:.2f})\nActual: {dm.classes[targets[idx]]}",
+            color="red",
+            fontsize=10,
+        )
+        plt.axis("off")
+    plt.suptitle("Top 10 Most Confident Incorrect Predictions", fontsize=16)
+    plt.show()
+else:
+    print("No errors found in test set!")
+
+# %% [markdown]
+# ### C. Model Interpretability
+# We use Grad-CAM to visualize where the model focuses its attention when making predictions.
+
+# %%
+from captum.attr import LayerGradCam
+import matplotlib.cm as cm
+
+# We target the last convolutional block of MobileNetV2
+target_layer = model.feature_extractor.backbone.conv_head
+lgc = LayerGradCam(model, target_layer)
+
+plt.figure(figsize=(20, 12))
+np.random.seed(42)
+sample_indices = [
+    np.random.choice(np.where(targets == i)[0]) for i in range(len(dm.classes))
+]
+
+for i, idx in enumerate(sample_indices):
+    img, label = test_loader.dataset[idx]
+    input_tensor = img.unsqueeze(0).to(device)
+
+    attribution = lgc.attribute(input_tensor, target=label)
+    # Standardize normalization for visualization
+    heatmap = attribution.squeeze().cpu().detach().numpy()
+    heatmap = np.maximum(heatmap, 0)
+    if heatmap.max() > 0:
+        heatmap /= heatmap.max()
+
+    # Overlay logic
+    img_disp = img.permute(1, 2, 0).numpy()
+    img_disp = (
+        img_disp * np.array([0.229, 0.224, 0.225]) + np.array([0.485, 0.456, 0.406])
+    ).clip(0, 1)
+
+    from scipy.ndimage import zoom
+
+    h, w = img_disp.shape[:2]
+    heatmap_upsampled = zoom(heatmap, (h / heatmap.shape[0], w / heatmap.shape[1]))
+
+    plt.subplot(2, 3, i + 1)
+    plt.imshow(img_disp)
+    plt.imshow(heatmap_upsampled, cmap="jet", alpha=0.4)
+    plt.title(f"Class: {dm.classes[label]}")
+    plt.axis("off")
+
+plt.suptitle("Grad-CAM Heatmaps per Class", fontsize=16)
+plt.tight_layout()
+plt.show()
+
+# %% [markdown]
+# ## Phase 2: Optimizer Grid Search
+# Now that we have successfully evaluated our Phase 1 champion, we proceed to Phase 2b to find the optimal Learning Rate and Weight Decay parameters.
+
+# %%
+# # !make grid-search-finetune
