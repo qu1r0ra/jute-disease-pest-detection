@@ -58,6 +58,13 @@ train-dl-check-single:
 train-cv:
 	$(PYTHON) scripts/train_cross_validation.py configs/baselines/mobilenet_v2.yaml --folds 5
 
+train-dl-512:
+	$(PYTHON) scripts/train_dl.py fit --config configs/baselines/mobilenet_v2.yaml \
+		--data.image_size=512 \
+		--trainer.callbacks.init_args.dirpath=artifacts/checkpoints/mobilenet_v2_512 \
+		--trainer.callbacks.init_args.filename="mobilenet_v2-512-{epoch:02d}-{val_loss:.4f}" \
+		--trainer.logger.init_args.name=mobilenet_v2_512px
+
 grid-search:
 	$(PYTHON) scripts/run_grid_search.py configs/grid/mobilenet_v2_grid.yaml
 
