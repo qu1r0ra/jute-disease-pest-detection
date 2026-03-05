@@ -81,20 +81,21 @@ def create_pipeline(size: int, is_train: bool, is_dl: bool) -> AlbumentationsAda
     """Factory to create a full transformation pipeline."""
     base_group = _get_base_train_ops(size) if is_train else _get_base_val_ops(size)
 
-    pipeline_groups = [base_group]
+    # Flatten the groups to ensure deterministic seed behavior across construction
+    transforms = list(base_group.transforms)
     if is_dl:
-        pipeline_groups.append(NORMALIZATION_OPS)
+        transforms.extend(list(NORMALIZATION_OPS.transforms))
 
-    return AlbumentationsAdapter(A.Compose(pipeline_groups, seed=DEFAULT_SEED))
+    return AlbumentationsAdapter(A.Compose(transforms, seed=DEFAULT_SEED))
 
 
-# Standard 256px Baseline
+# Standard 256px baseline
 ml_train_transforms = create_pipeline(IMAGE_SIZE, is_train=True, is_dl=False)
 ml_val_transforms = create_pipeline(IMAGE_SIZE, is_train=False, is_dl=False)
 
 dl_train_transforms = create_pipeline(IMAGE_SIZE, is_train=True, is_dl=True)
 dl_val_transforms = create_pipeline(IMAGE_SIZE, is_train=False, is_dl=True)
 
-# High-Resolution 512px Variants
+# High-Resolution 512px variants
 dl_train_transforms_512 = create_pipeline(512, is_train=True, is_dl=True)
 dl_val_transforms_512 = create_pipeline(512, is_train=False, is_dl=True)

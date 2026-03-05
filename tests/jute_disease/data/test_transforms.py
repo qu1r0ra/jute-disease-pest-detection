@@ -45,8 +45,6 @@ def test_pipeline_seed_consistency():
 
     img = Image.fromarray(np.random.randint(0, 256, (400, 400, 3), dtype=np.uint8))
 
-    # We need to be careful here because Albumentations random state might change
-    # But with the same seed in Compose, they should be deterministic if called immediately
     out1 = pipeline1(img)
     out2 = pipeline2(img)
 
