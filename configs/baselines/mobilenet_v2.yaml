@@ -23,7 +23,7 @@ trainer:
         monitor: val_loss
         dirpath: artifacts/checkpoints/mobilenet_v2
         filename: "mobilenet_v2-{epoch:02d}-{val_loss:.4f}"
-        save_top_k: 3
+        save_top_k: 1
         mode: min
     - class_path: lightning.pytorch.callbacks.EarlyStopping
       init_args:
@@ -32,7 +32,7 @@ trainer:
         mode: min
     - class_path: lightning.pytorch.callbacks.TQDMProgressBar
       init_args:
-        refresh_rate: 100
+        refresh_rate: 50
 
 model:
   num_classes: 6
