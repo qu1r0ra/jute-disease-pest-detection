@@ -21,29 +21,30 @@ def _aggregate_metrics(exp_names: list[str], output_csv: Path) -> None:
         if not log_dir.exists():
             continue
 
-        # Find the latest version folder
-        versions = list(log_dir.glob("version_*"))
-        if not versions:
+        # Concatenate all versions to merge fit and test outputs
+        metrics_files = list(log_dir.glob("version_*/metrics.csv"))
+        if not metrics_files:
             continue
 
-        versions.sort(key=lambda p: int(p.name.split("_")[-1]))
-        latest_version = versions[-1]
-        metrics_file = latest_version / "metrics.csv"
-
-        if not metrics_file.exists():
+        dfs = [pd.read_csv(f) for f in metrics_files]
+        if not dfs:
             continue
 
-        df = pd.read_csv(metrics_file)
+        df = pd.concat(dfs, ignore_index=True)
 
-        val_df = df.dropna(subset=["val_loss"])
-        if not val_df.empty:
-            best_val = val_df.loc[val_df["val_loss"].idxmin()].to_dict()
+        if "val_loss" in df.columns:
+            val_df = df.dropna(subset=["val_loss"])
+            best_val = (
+                val_df.loc[val_df["val_loss"].idxmin()].to_dict()
+                if not val_df.empty
+                else {}
+            )
         else:
             best_val = {}
 
-        test_df = df.dropna(subset=["test_loss"])
-        if not test_df.empty:
-            test_metrics = test_df.iloc[-1].to_dict()
+        if "test_loss" in df.columns:
+            test_df = df.dropna(subset=["test_loss"])
+            test_metrics = test_df.iloc[-1].to_dict() if not test_df.empty else {}
         else:
             test_metrics = {}
 
@@ -78,9 +79,9 @@ def _get_modified_base_config(
 
     for cb in trainer_cfg.get("callbacks", []):
         if "ModelCheckpoint" in cb.get("class_path", ""):
-            cb.setdefault("init_args", {})["dirpath"] = (
-                f"artifacts/checkpoints/{exp_name}"
-            )
+            cb.setdefault("init_args", {})[
+                "dirpath"
+            ] = f"artifacts/checkpoints/{exp_name}"
 
     # Explicitly define WandbLogger properties to avoid CLI CSVLogger crashes
     loggers = trainer_cfg.get("logger", [])
