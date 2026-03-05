@@ -247,46 +247,65 @@ else:
 # %%
 from captum.attr import LayerGradCam
 import matplotlib.cm as cm
+from scipy.ndimage import zoom
 
 # We target the last convolutional block of MobileNetV2
 target_layer = model.feature_extractor.backbone.conv_head
 lgc = LayerGradCam(model, target_layer)
 
-plt.figure(figsize=(20, 12))
+num_samples = 5
+num_classes = len(dm.classes)
+plt.figure(figsize=(20, 4 * num_classes))
 np.random.seed(42)
-sample_indices = [
-    np.random.choice(np.where(targets == i)[0]) for i in range(len(dm.classes))
-]
 
-for i, idx in enumerate(sample_indices):
-    img, label = pooled_dataset[idx]
-    input_tensor = img.unsqueeze(0).to(device)
+plot_idx = 1
+for class_idx in range(num_classes):
+    class_name = dm.classes[class_idx]
+    all_class_indices = np.where(targets == class_idx)[0]
 
-    attribution = lgc.attribute(input_tensor, target=label)
-    # Standardize normalization for visualization
-    heatmap = attribution.squeeze().cpu().detach().numpy()
-    heatmap = np.maximum(heatmap, 0)
-    if heatmap.max() > 0:
-        heatmap /= heatmap.max()
+    # Select up to 5 random samples for this class
+    n = min(len(all_class_indices), num_samples)
+    selected_indices = np.random.choice(all_class_indices, n, replace=False)
 
-    # Overlay logic
-    img_disp = img.permute(1, 2, 0).numpy()
-    img_disp = (
-        img_disp * np.array([0.229, 0.224, 0.225]) + np.array([0.485, 0.456, 0.406])
-    ).clip(0, 1)
+    for idx in selected_indices:
+        img, label = pooled_dataset[idx]
+        input_tensor = img.unsqueeze(0).to(device)
 
-    from scipy.ndimage import zoom
+        attribution = lgc.attribute(input_tensor, target=label)
+        # Standardize normalization for visualization
+        heatmap = attribution.squeeze().cpu().detach().numpy()
+        heatmap = np.maximum(heatmap, 0)
+        if heatmap.max() > 0:
+            heatmap /= heatmap.max()
 
-    h, w = img_disp.shape[:2]
-    heatmap_upsampled = zoom(heatmap, (h / heatmap.shape[0], w / heatmap.shape[1]))
+        # Rescale image for display
+        img_disp = img.permute(1, 2, 0).numpy()
+        img_disp = (
+            img_disp * np.array([0.229, 0.224, 0.225]) + np.array([0.485, 0.456, 0.406])
+        ).clip(0, 1)
 
-    plt.subplot(2, 3, i + 1)
-    plt.imshow(img_disp)
-    plt.imshow(heatmap_upsampled, cmap="jet", alpha=0.4)
-    plt.title(f"Class: {dm.classes[label]}")
-    plt.axis("off")
+        h, w = img_disp.shape[:2]
+        heatmap_upsampled = zoom(heatmap, (h / heatmap.shape[0], w / heatmap.shape[1]))
 
-plt.suptitle("Grad-CAM Heatmaps per Class", fontsize=16)
+        plt.subplot(num_classes, num_samples, plot_idx)
+        plt.imshow(img_disp)
+        plt.imshow(heatmap_upsampled, cmap="jet", alpha=0.4)
+        if (plot_idx - 1) % num_samples == 0:
+            plt.ylabel(class_name, fontsize=14, fontweight="bold")
+
+        plt.title(f"Conf: {probs[idx, label]:.2f}")
+        plt.xticks([])
+        plt.yticks([])
+        plot_idx += 1
+
+    # Fill empty slots in the grid if samples < num_samples
+    plot_idx += num_samples - n
+
+plt.suptitle(
+    "Model Interpretability: Grad-CAM Heatmaps (5 Samples per Class)",
+    fontsize=20,
+    y=1.02,
+)
 plt.tight_layout()
 plt.show()
 
