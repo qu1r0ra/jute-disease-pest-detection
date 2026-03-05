@@ -21,41 +21,43 @@ def _aggregate_metrics(exp_names: list[str], output_csv: Path) -> None:
         if not log_dir.exists():
             continue
 
-        # Find the latest version folder
-        versions = list(log_dir.glob("version_*"))
-        if not versions:
+        # Concatenate all versions to merge fit and test outputs
+        metrics_files = list(log_dir.glob("version_*/metrics.csv"))
+        if not metrics_files:
             continue
 
-        versions.sort(key=lambda p: int(p.name.split("_")[-1]))
-        latest_version = versions[-1]
-        metrics_file = latest_version / "metrics.csv"
-
-        if not metrics_file.exists():
+        dfs = [pd.read_csv(f) for f in metrics_files]
+        if not dfs:
             continue
 
-        df = pd.read_csv(metrics_file)
-
-        val_df = df.dropna(subset=["val_loss"])
-        if not val_df.empty:
-            best_val = val_df.loc[val_df["val_loss"].idxmin()].to_dict()
-        else:
-            best_val = {}
-
-        test_df = df.dropna(subset=["test_loss"])
-        if not test_df.empty:
-            test_metrics = test_df.iloc[-1].to_dict()
-        else:
-            test_metrics = {}
+        df = pd.concat(dfs, ignore_index=True)
 
         summary = {"Experiment": exp}
 
-        for key, val in best_val.items():
-            if key.startswith("val_") or key.startswith("train_"):
-                summary[key] = val
+        if "val_loss" in df.columns:
+            val_df = df.dropna(subset=["val_loss"])
+            if not val_df.empty:
+                best_row = val_df.loc[val_df["val_loss"].idxmin()].to_dict()
+                for key, val in best_row.items():
+                    if (
+                        key.startswith("val_")
+                        or key.startswith("train_")
+                        or key in ["epoch", "step"]
+                    ):
+                        summary[key] = val
 
-        for key, val in test_metrics.items():
-            if key.startswith("test_"):
-                summary[key] = val
+        # Ensure we have train_acc even if not in the best validation row
+        for col in ["train_acc", "train_loss"]:
+            if col in df.columns and (col not in summary or pd.isna(summary[col])):
+                summary[col] = df[col].max() if "acc" in col else df[col].min()
+
+        if "test_loss" in df.columns:
+            test_df = df.dropna(subset=["test_loss"])
+            if not test_df.empty:
+                test_metrics = test_df.iloc[-1].to_dict()
+                for key, val in test_metrics.items():
+                    if key.startswith("test_"):
+                        summary[key] = val
 
         results.append(summary)
 
