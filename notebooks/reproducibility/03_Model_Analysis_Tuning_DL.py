@@ -90,7 +90,7 @@ if metrics_path.exists():
     plt.ylim(0.8, 0.95)
     plt.title("Resolution Impact on Test Accuracy (MobileNetV2)")
     plt.ylabel("Test Accuracy")
-    plt.grid(axis="y", linestyle="--", alpha=0.7)
+    plt.savefig("../../assets/figures/dl/resolution_impact.png", bbox_inches="tight", dpi=300)
     plt.show()
 
     display(comp_df[["Experiment", "test_acc", "test_f1", "test_loss"]])
@@ -140,6 +140,7 @@ if history_files:
     ax[1].grid(True, alpha=0.3)
 
     plt.tight_layout()
+    plt.savefig("../../assets/figures/dl/training_history.png", bbox_inches="tight", dpi=300)
     plt.show()
 else:
     logger.warning("Training history not found.")
@@ -238,7 +239,7 @@ tsne = TSNE(n_components=2, perplexity=30, random_state=42)
 feat_2d = tsne.fit_transform(features)
 
 plt.figure(figsize=(14, 10))
-colors = sns.color_palette("husl", len(dm.classes))
+colors = sns.color_palette("tab10", len(dm.classes))
 
 for i, cls in enumerate(dm.classes):
     # Train set (faded 'x' markers)
@@ -249,7 +250,7 @@ for i, cls in enumerate(dm.classes):
         color=colors[i],
         marker="x",
         s=25,
-        alpha=0.1,
+        alpha=0.4,
         label=None,
     )
 
@@ -285,9 +286,10 @@ leg1 = plt.legend(handles=split_legend, loc="lower left", title="Splits")
 plt.gca().add_artist(leg1)
 plt.legend(loc="upper right", title="Classes", ncol=2)
 
-plt.title("t-SNE Visualization: Global Feature Separation (Train vs Eval)")
+plt.title("t-SNE Visualization of Jute Leaf Data")
 plt.xlabel("t-SNE 1")
 plt.ylabel("t-SNE 2")
+plt.savefig("../../assets/figures/dl/tsne_feature_separation.png", bbox_inches="tight", dpi=300)
 plt.show()
 
 # %% [markdown]
@@ -311,7 +313,7 @@ for i, cls in enumerate(dm.classes):
         color=colors[i],
         marker="x",
         s=25,
-        alpha=0.1,
+        alpha=0.4,
         label=None,
     )
 
@@ -333,9 +335,10 @@ leg1 = plt.legend(handles=split_legend, loc="lower left", title="Splits")
 plt.gca().add_artist(leg1)
 plt.legend(loc="upper right", title="Classes", ncol=2)
 
-plt.title("UMAP Visualization: Global Feature Separation (Train vs Eval)")
+plt.title("UMAP Visualization of Jute Leaf Data")
 plt.xlabel("UMAP 1")
 plt.ylabel("UMAP 2")
+plt.savefig("../../assets/figures/dl/umap_feature_separation.png", bbox_inches="tight", dpi=300)
 plt.show()
 
 # %% [markdown]
@@ -370,6 +373,7 @@ if len(wrong_indices) > 0:
         )
         plt.axis("off")
     plt.suptitle("Top 10 Most Confident Incorrect Predictions", fontsize=16)
+    plt.savefig("../../assets/figures/dl/top_10_errors.png", bbox_inches="tight", dpi=300)
     plt.show()
 else:
     logger.info("No errors found in test set!")
@@ -440,6 +444,7 @@ plt.suptitle(
     y=1.02,
 )
 plt.tight_layout()
+plt.savefig("../../assets/figures/dl/grad_cam.png", bbox_inches="tight", dpi=300)
 plt.show()
 
 # %% [markdown]
