@@ -1,5 +1,3 @@
-"""Verify all DL baseline configs pass a fast_dev_run."""
-
 import argparse
 import subprocess
 import sys
@@ -19,17 +17,15 @@ def check_all_dl(
     """Run a fast dev run for a single configuration or all configs."""
     if config_file:
         if not config_file.exists():
-            logger.error(f"Config file not found: {config_file}")
-            sys.exit(1)
+            raise FileNotFoundError(f"Config file not found: {config_file}")
         configs = [config_file]
     else:
         configs = sorted(configs_dir.glob("*.yaml"))
 
     if not configs:
-        logger.error(f"No configs found in {configs_dir}")
-        sys.exit(1)
+        raise FileNotFoundError(f"No configs found in {configs_dir}")
 
-    logger.info(f"Starting DL Fast Dev Run — {len(configs)} configs found.")
+    logger.info(f"Starting DL Fast Dev Run: {len(configs)} configs found.")
 
     failed: list[str] = []
     for config in configs:
@@ -45,7 +41,7 @@ def check_all_dl(
             "--config",
             str(config),
             "--trainer.fast_dev_run=True",
-            "--data.num_workers=2",
+            "--data.num_workers=4",
             "--data.pin_memory=True",
             "--data.batch_size=32",
         ]
@@ -58,8 +54,7 @@ def check_all_dl(
             logger.info(f"{model_name} passed.")
 
     if failed:
-        logger.error(f"Failed models: {failed}")
-        sys.exit(1)
+        raise RuntimeError(f"Failed models: {failed}")
 
     logger.info("All DL models verified!")
 
@@ -81,4 +76,7 @@ if __name__ == "__main__":
         help="Path to a single baseline YAML config to check.",
     )
     args = parser.parse_args()
-    check_all_dl(configs_dir=args.configs_dir, config_file=args.config)
+    try:
+        check_all_dl(configs_dir=args.configs_dir, config_file=args.config)
+    except Exception:
+        sys.exit(1)

@@ -22,15 +22,13 @@ def run_all_dl(
     """Execute training for a single configuration or iterate through all."""
     if config_file:
         if not config_file.exists():
-            logger.error(f"Config file not found: {config_file}")
-            sys.exit(1)
+            raise FileNotFoundError(f"Config file not found: {config_file}")
         configs = [config_file]
     else:
         configs = sorted(configs_dir.glob("*.yaml"))
 
     if not configs:
-        logger.error(f"No configs found in {configs_dir}")
-        sys.exit(1)
+        raise FileNotFoundError(f"No configs found in {configs_dir}")
 
     logger.info(f"Starting DL Training Pipeline — {len(configs)} configs found.")
 
@@ -54,18 +52,16 @@ def run_all_dl(
         ]
         result = subprocess.run(fit_cmd, env=env)
         if result.returncode != 0:
-            logger.error(
+            raise RuntimeError(
                 f"{model_name} failed during fit with exit code {result.returncode}."
             )
-            sys.exit(result.returncode)
 
         logger.info(f"Testing {model_name}...")
 
         ckpt_dir = Path("artifacts/checkpoints") / model_name
         ckpts = list(ckpt_dir.glob("*.ckpt"))
         if not ckpts:
-            logger.error(f"No checkpoint found for {model_name} in {ckpt_dir}.")
-            sys.exit(1)
+            raise FileNotFoundError(f"No checkpoint found for {model_name} in {ckpt_dir}.")
 
         best_ckpt = ckpts[0]
 
@@ -82,10 +78,9 @@ def run_all_dl(
         ]
         result = subprocess.run(test_cmd, env=env)
         if result.returncode != 0:
-            logger.error(
+            raise RuntimeError(
                 f"{model_name} failed during test with exit code {result.returncode}."
             )
-            sys.exit(result.returncode)
 
         logger.info(f"Finished {model_name}.")
 
@@ -107,4 +102,7 @@ if __name__ == "__main__":
         help="Path to a single baseline YAML config to execute.",
     )
     args = parser.parse_args()
-    run_all_dl(configs_dir=args.configs_dir, config_file=args.config)
+    try:
+        run_all_dl(configs_dir=args.configs_dir, config_file=args.config)
+    except Exception:
+        sys.exit(1)
