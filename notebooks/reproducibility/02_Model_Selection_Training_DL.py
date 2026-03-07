@@ -33,8 +33,8 @@
 # - Decide on a baseline model to move forward with
 # - Get checkpoints for different levels of fine-tuning on the chosen model:
 #   - _Level 1_: ImageNet (pre-trained)
-#   - _Level 2_: ImageNet (pre-trained) -> PlantVillage (fine-tuned)
-#   - _Level 3_: ImageNet (pre-trained) -> PlantVillage (fine-tuned) -> PlantDoc (fine-tuned)
+#   - _Level 2_: ImageNet (pre-trained) -> PlantVillage (fine-tuning)
+#   - _Level 3_: ImageNet (pre-trained) -> PlantVillage (fine-tuning) -> PlantDoc (fine-tuning)
 # - Conduct grid search on the chosen model with the ff. hyperparameters/settings:
 #   - _Dropout rate_: 0.0, 0.1, 0.2
 #   - _Checkpoints_: Levels 1, 2, 3
@@ -145,27 +145,22 @@ else:
     print("Symlink failed :<")
 
 # %% [markdown] id="9d77d540"
-# ## Transfer Learning Setup
+# ## Fine-Tuning and Transfer Learning Setup
 #
-# We saw from EDA that our dataset is pretty small (2382 images across 6 classes) for an image recognition task. To address our limitation in data, we decided to employ transfer learning as a key technique (among others, such as data augmentation) for our deep learning experiments.
+# We saw from EDA that our dataset is pretty small (2382 images across 6 classes) for an image recognition task. To address our limitation in data, we decided to employ fine tuning and transfer learning as key techniques for our DL experiments.
 #
-# (levels of transfer learning)
-# 1. **Level 1**: ImageNet -> our Jute dataset
-# 2. **Level 2**: ImageNet -> PlantVillage -> our Jute dataset
-# 3. **Level 3**: ImageNet -> PlantVillage -> PlantDoc -> our Jute dataset
+# First, what is the difference between fine-tuning and transfer learning? Both involve a pre-trained model, but fine-tuning trains part or all of the pre-trained model's layers whereas transfer learning only trains the final layer, freezing the rest (GeeksforGeeks, 2025).
 #
-# Levels 2 and 3 are known as **multistage transfer learning (MSTL)**, which as the name suggests, is transfer learning with multiple stages. An analogy of TL vs. MSTL can be made in the task of teaching a Tagalog-speaking Filipino the Spanish language. While we could just teach them Spanish directly (TL), it may be more effective to first teach them Chavacano (a Spanish-based language spoken in the Philippines) before teaching them Spanish (MSTL). Perhaps learning Chavacano first will make learning Spanish a lot easier, leading to a greater Spanish proficiency by the end.
+# As a part of this experiment, we will employ the ff. 'levels' of fine-tuning and transfer learning:
+# 1. **Level 1**: ImageNet (pre-trained) -> our Jute dataset (transfer learning)
+# 2. **Level 2**: ImageNet (pre-trained) -> PlantVillage (fine-tuning) -> our Jute dataset (transfer learning)
+# 3. **Level 3**: ImageNet (pre-trained) -> PlantVillage (fine-tuning) -> PlantDoc (fine-tuning) -> our Jute dataset (transfer learning)
 #
-# Thus, we hope that transfer learning will enable our deep learning models to adapt general patterns learned from ImageNet objects to the domain of leaf disease detection. We are also curious as to whether utilizing MSTL with similar but general datasets such as PlantVillage and PlantDoc can improve performance.
+# An intuition as to why this may work can be formed from the task of teaching a Tagalog-speaking Filipino the Spanish language. While we could just teach them Spanish directly, it may be more effective to first teach them Chavacano (a Spanish-based language spoken in the Philippines) before teaching them Spanish. Perhaps learning Chavacano first will make learning Spanish more effective, leading to a greater Spanish proficiency at the end.
 #
-# Specifically, we will experiment with six (6) established deep learning architectures:
-# - ResNet-50
-# - Inception v3
-# - EfficientNet-B5
-# - EfficientNet-B7
-# - MobileNetV2
+# Thus, we hope that transfer learning will enable our deep learning models to adapt general patterns learned from ImageNet objects to the domain of leaf disease detection. We are also curious as to whether fine-tuning on related datasets such as PlantVillage and PlantDoc first before conducting transfer learning on our dataset will improve performance.
 #
-# `(i will polish later)`
+# Enough yapping, let's experiment!
 # %% [markdown] id="3ba92b2d"
 # ## Deep Learning Baselines (Level 1: ImageNet Only)
 #
@@ -192,10 +187,6 @@ else:
 
 # %% id="IiNA4hRqyxnN"
 # !make train-dl-single MODEL=efficientnet_b7
-
-# %% [markdown] id="e3157de6"
-# ## === Everything above is final ===
-
 
 # %% [markdown] id="b53753d7"
 # ## 2. MSTL Domain Initializations (Pre-training)
