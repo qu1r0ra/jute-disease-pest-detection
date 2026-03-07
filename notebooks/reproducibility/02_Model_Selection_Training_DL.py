@@ -162,31 +162,23 @@ else:
 #
 # Enough yapping, let's experiment!
 # %% [markdown] id="3ba92b2d"
-# ## Deep Learning Baselines (Level 1: ImageNet Only)
+# ## Model Training
 #
-# We systematically train and evaluate our six chosen architectures on the `DATA_ZIP_PATH` jute splits. Every model's feature extractor initiates from ImageNet generic representations. We will freeze their backbones and only train the final custom dense classifiers.
-
-# %% [markdown] id="65968e63"
-# **Fast Dev Run Validation**
+# Before we proceed with actual model training, it's always a good idea to perform a 'trial run' for each of our models. In our case, a trial run will consist of running a single train, validation, and test epoch just to make sure our models don't crash unexpectedly in the middle of training. It has happened to me several times in the past and I do not want to experience it again.
 #
-# First, we dispatch a rapid sanity check using PyTorch Lightning's `fast_dev_run` capability. This performs exactly 1 training and validation batch traversing through all 6 architectures. It mathematically verifies gradients flow properly without silently crashing an hour later!
+# Fortunately, PyTorch Lightning (a PyTorch wrapper) supports this with their `fast_dev_run` capability. This is what the script below will do.
 
 # %% id="c99d0d78"
 # !uv run python scripts/train_all_dl_check.py
 
 # %% [markdown] id="a5624dad"
-# **Execute 6 Deep Learning Baselines**
-#
-# Running the master sequential launcher. This autonomously `fits` and subsequently `tests` each `.yaml` model config entirely using your GPU.
+# Having verified that the fast dev run works, we can now conduct transfer learning on our chosen DL architectures pretrained on ImageNet-1K.
 
 # %% id="d32c265a"
 # !uv run python scripts/train_all_dl.py
 
-# %% [markdown] id="zezgVidiyti0"
-# Let us fine-tune an EfficientNet-B7.
-
-# %% id="IiNA4hRqyxnN"
-# !make train-dl-single MODEL=efficientnet_b7
+# %% [markdown]
+# > continue here
 
 # %% [markdown] id="b53753d7"
 # ## 2. MSTL Domain Initializations (Pre-training)
