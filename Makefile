@@ -108,4 +108,4 @@ clean-ml:
 	rm -rf artifacts/ml_models artifacts/features
 
 sync-nb:
-	uv run jupytext --sync notebooks/reproducibility/*.py
+	uv run jupytext --sync notebooks/**/*.py

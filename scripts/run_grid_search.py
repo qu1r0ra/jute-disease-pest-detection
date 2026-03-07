@@ -4,9 +4,9 @@ import subprocess
 from pathlib import Path
 
 import pandas as pd
+import wandb
 import yaml
 
-import wandb
 from jute_disease.utils import get_logger
 
 logger = get_logger(__name__)
