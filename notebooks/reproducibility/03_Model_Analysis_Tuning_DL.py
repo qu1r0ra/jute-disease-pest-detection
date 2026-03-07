@@ -25,20 +25,28 @@
 # We summarize the performance metrics and visualize the training dynamics of our Phase 1 champion: **MobileNetV2 (ImageNet + 0.1 Dropout)**.
 
 # %%
-from pathlib import Path
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
 
 from jute_disease.utils import get_logger
+from jute_disease.utils.constants import (
+    ARTIFACTS_DIR,
+    BATCH_SIZE,
+    DEFAULT_SEED,
+    DPI,
+    FIGURES_DL_DIR,
+    ML_SPLIT_DIR,
+    NUM_WORKERS,
+)
 
 logger = get_logger("AnalysisNoteBook")
 
 # 1. Load Consolidated Metrics
-metrics_path = Path("../../artifacts/grid_search_mobilenet_v2_phase1_metrics.csv")
-res_512_01 = Path("../../artifacts/mobilenet_v2-512px-dr_0.1-metrics.csv")
-res_512_00 = Path("../../artifacts/mobilenet_v2-512px-dr_0.0-metrics.csv")
+metrics_path = ARTIFACTS_DIR / "grid_search_mobilenet_v2_phase1_metrics.csv"
+res_512_01 = ARTIFACTS_DIR / "mobilenet_v2-512px-dr_0.1-metrics.csv"
+res_512_00 = ARTIFACTS_DIR / "mobilenet_v2-512px-dr_0.0-metrics.csv"
 
 if metrics_path.exists():
     df_phase1 = pd.read_csv(metrics_path)
@@ -78,18 +86,34 @@ if metrics_path.exists():
         lambda x: "512px" if "512px" in x else "256px"
     )
     comp_df["Dropout"] = comp_df["Experiment"].apply(
-        lambda x: "DR 0.1" if "dr_0.1" in x else "DR 0.0"
+        lambda x: "0.1" if "dr_0.1" in x else "0.0"
     )
+    comp_df = comp_df.sort_values("Dropout")
 
     import seaborn as sns
 
-    sns.barplot(
+    ax_bar = sns.barplot(
         data=comp_df, x="Dropout", y="test_acc", hue="Resolution", palette="viridis"
     )
     plt.ylim(0.8, 0.95)
     plt.title("Resolution Impact on Test Accuracy (MobileNetV2)")
+    plt.xlabel("Dropout Rate")
     plt.ylabel("Test Accuracy")
     plt.grid(axis="y", linestyle="--", alpha=0.7)
+
+    for p in ax_bar.patches:
+        height = p.get_height()
+        if height > 0:
+            ax_bar.annotate(
+                f"{height:.1%}",
+                (p.get_x() + p.get_width() / 2.0, height),
+                ha="center",
+                va="bottom",
+                fontsize=10,
+                xytext=(0, 4),
+                textcoords="offset points",
+            )
+    plt.savefig(FIGURES_DL_DIR / "resolution_impact.png", bbox_inches="tight", dpi=DPI)
     plt.show()
 
     display(comp_df[["Experiment", "test_acc", "test_f1", "test_loss"]])
@@ -97,7 +121,7 @@ else:
     logger.warning("Metrics summary not found.")
 
 # 2. Load Training History for Curves
-history_dir = Path("../../artifacts/logs/mobilenet_v2-l1_imagenet-dr_0.1")
+history_dir = ARTIFACTS_DIR / "logs" / "mobilenet_v2-l1_imagenet-dr_0.1"
 history_files = list(history_dir.glob("version_*/metrics.csv"))
 if history_files:
     dfs = [pd.read_csv(f) for f in history_files]
@@ -139,6 +163,7 @@ if history_files:
     ax[1].grid(True, alpha=0.3)
 
     plt.tight_layout()
+    plt.savefig(FIGURES_DL_DIR / "training_history.png", bbox_inches="tight", dpi=DPI)
     plt.show()
 else:
     logger.warning("Training history not found.")
@@ -152,21 +177,35 @@ import time
 
 import torch
 import torch.nn.functional as F
+from matplotlib.lines import Line2D
 from sklearn.manifold import TSNE
-from torch.utils.data import ConcatDataset
+from torch.utils.data import ConcatDataset, DataLoader
+from torchvision.datasets import ImageFolder
 
 from jute_disease.data.datamodule import DataModule
 from jute_disease.models.dl.backbone import TimmBackbone
 from jute_disease.models.dl.classifier import Classifier
 
-dm = DataModule(data_dir="../../data/ml_split", batch_size=32)
+dm = DataModule(data_dir=str(ML_SPLIT_DIR), batch_size=BATCH_SIZE)
 dm.setup("test")
 dm.setup("fit")
+
+# Create 'Clean' datasets for visualization (all using val_transform)
+# This ensures we see the actual image, not random augmentations/crops
+clean_train = ImageFolder(root=dm.train_dir, transform=dm.val_transform)
+clean_val = ImageFolder(root=dm.val_dir, transform=dm.val_transform)
+clean_test = ImageFolder(root=dm.test_dir, transform=dm.val_transform)
+
+# Clean loaders for inference
+clean_train_loader = DataLoader(
+    clean_train, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS
+)
 val_loader = dm.val_dataloader()
 test_loader = dm.test_dataloader()
-pooled_dataset = ConcatDataset([dm.jute_val, dm.jute_test])
 
-champion_dir = Path("../../artifacts/checkpoints/mobilenet_v2-l1_imagenet-dr_0.1")
+pooled_dataset = ConcatDataset([clean_train, clean_val, clean_test])
+
+champion_dir = ARTIFACTS_DIR / "checkpoints" / "mobilenet_v2-l1_imagenet-dr_0.1"
 ckpt_path = list(champion_dir.glob("*.ckpt"))[0]
 backbone = TimmBackbone(model_name="mobilenetv2_100")
 model = Classifier.load_from_checkpoint(ckpt_path, feature_extractor=backbone)
@@ -179,13 +218,16 @@ all_features = []
 all_preds = []
 all_targets = []
 all_probs = []
+all_splits = []
 start_time = time.time()
 
 # Pool Val and Test for broader analysis
-loaders = [("Val", val_loader), ("Test", test_loader)]
+# Pool all splits for a global view of the feature space
+# We use clean_train_loader instead of dm.train_dataloader to avoid augmentations
+loaders = [("Train", clean_train_loader), ("Val", val_loader), ("Test", test_loader)]
 
 with torch.no_grad():
-    for _, loader in loaders:
+    for split_name, loader in loaders:
         for x, y in loader:
             x = x.to(device)
             # Extract features
@@ -197,6 +239,7 @@ with torch.no_grad():
             all_probs.append(probs.cpu())
             all_preds.append(logits.argmax(dim=1).cpu())
             all_targets.append(y)
+            all_splits.extend([split_name] * x.size(0))
 
 end_time = time.time()
 total_imgs = len(pooled_dataset)
@@ -208,26 +251,68 @@ features = torch.cat(all_features).numpy()
 preds = torch.cat(all_preds).numpy()
 targets = torch.cat(all_targets).numpy()
 probs = torch.cat(all_probs).numpy()
+splits = np.array(all_splits)
 
 # %% [markdown]
 # #### t-SNE Feature Embeddings
 # We visualize the high-dimensional feature vectors to see how well the classes are separated in latent space (Val + Test).
 
 # %%
-tsne = TSNE(n_components=2, perplexity=30, random_state=42)
+tsne = TSNE(n_components=2, perplexity=30, random_state=DEFAULT_SEED)
 feat_2d = tsne.fit_transform(features)
 
-plt.figure(figsize=(12, 8))
+plt.figure(figsize=(14, 10))
+colors = sns.color_palette("tab10", len(dm.classes))
+
 for i, cls in enumerate(dm.classes):
-    mask = targets == i
+    # Train set (faded 'x' markers)
+    mask_train = (targets == i) & (splits == "Train")
     plt.scatter(
-        feat_2d[mask, 0], feat_2d[mask, 1], label=cls, alpha=0.6, edgecolors="w", s=60
+        feat_2d[mask_train, 0],
+        feat_2d[mask_train, 1],
+        color=colors[i],
+        marker="x",
+        s=25,
+        alpha=0.4,
+        label=None,
     )
 
-plt.legend()
-plt.title("t-SNE Visualization of Champion Model Latent Features (Val + Test)")
+    # Eval set (solid 'o' markers)
+    mask_eval = (targets == i) & (splits != "Train")
+    plt.scatter(
+        feat_2d[mask_eval, 0],
+        feat_2d[mask_eval, 1],
+        color=colors[i],
+        marker="o",
+        s=70,
+        alpha=0.8,
+        edgecolors="white",
+        linewidth=0.5,
+        label=cls,
+    )
+
+# Add double legend
+
+split_legend = [
+    Line2D(
+        [0],
+        [0],
+        marker="o",
+        color="gray",
+        lw=0,
+        markersize=8,
+        label="Eval Set (Val/Test)",
+    ),
+    Line2D([0], [0], marker="x", color="gray", lw=0, markersize=8, label="Train Set"),
+]
+leg1 = plt.legend(handles=split_legend, loc="lower left", title="Splits")
+plt.gca().add_artist(leg1)
+plt.legend(loc="upper right", title="Classes", ncol=2)
+
+plt.title("t-SNE Visualization of Jute Leaf Data")
 plt.xlabel("t-SNE 1")
 plt.ylabel("t-SNE 2")
+plt.savefig(FIGURES_DL_DIR / "tsne.png", bbox_inches="tight", dpi=DPI)
 plt.show()
 
 # %% [markdown]
@@ -237,25 +322,48 @@ plt.show()
 # %%
 import umap
 
-reducer = umap.UMAP(n_neighbors=15, min_dist=0.1, n_components=2, random_state=42)
+reducer = umap.UMAP(
+    n_neighbors=15, min_dist=0.1, n_components=2, random_state=DEFAULT_SEED
+)
 feat_umap = reducer.fit_transform(features)
 
-plt.figure(figsize=(12, 8))
+plt.figure(figsize=(14, 10))
+
 for i, cls in enumerate(dm.classes):
-    mask = targets == i
+    # Train set
+    mask_train = (targets == i) & (splits == "Train")
     plt.scatter(
-        feat_umap[mask, 0],
-        feat_umap[mask, 1],
-        label=cls,
-        alpha=0.6,
-        edgecolors="w",
-        s=60,
+        feat_umap[mask_train, 0],
+        feat_umap[mask_train, 1],
+        color=colors[i],
+        marker="x",
+        s=25,
+        alpha=0.4,
+        label=None,
     )
 
-plt.legend()
-plt.title("UMAP Visualization of Champion Model Latent Features (Val + Test)")
+    # Eval set
+    mask_eval = (targets == i) & (splits != "Train")
+    plt.scatter(
+        feat_umap[mask_eval, 0],
+        feat_umap[mask_eval, 1],
+        color=colors[i],
+        marker="o",
+        s=70,
+        alpha=0.8,
+        edgecolors="white",
+        linewidth=0.5,
+        label=cls,
+    )
+
+leg1 = plt.legend(handles=split_legend, loc="lower left", title="Splits")
+plt.gca().add_artist(leg1)
+plt.legend(loc="upper right", title="Classes", ncol=2)
+
+plt.title("UMAP Visualization of Jute Leaf Data")
 plt.xlabel("UMAP 1")
 plt.ylabel("UMAP 2")
+plt.savefig(FIGURES_DL_DIR / "umap.png", bbox_inches="tight", dpi=DPI)
 plt.show()
 
 # %% [markdown]
@@ -282,14 +390,33 @@ if len(wrong_indices) > 0:
 
         plt.subplot(2, 5, i + 1)
         plt.imshow(img_disp)
-        plt.title(
-            f"Pred: {dm.classes[preds[idx]]} ({probs[idx, preds[idx]]:.2f})\n"
-            f"Actual: {dm.classes[targets[idx]]}",
+        ax_sub = plt.gca()
+        plt.title("")
+        ax_sub.text(
+            0.5,
+            1.12,
+            f"Pred: {dm.classes[preds[idx]]} ({probs[idx, preds[idx]]:.2f})",
             color="red",
             fontsize=10,
+            ha="center",
+            transform=ax_sub.transAxes,
+        )
+        ax_sub.text(
+            0.5,
+            1.02,
+            f"Actual: {dm.classes[targets[idx]]}",
+            color="black",
+            fontsize=10,
+            ha="center",
+            transform=ax_sub.transAxes,
         )
         plt.axis("off")
-    plt.suptitle("Top 10 Most Confident Incorrect Predictions", fontsize=16)
+    plt.suptitle(
+        "Top 10 Most Confident Incorrect Predictions\n"
+        "(Note: The number in parenthesis is the prediction confidence)",
+        fontsize=16,
+    )
+    plt.savefig(FIGURES_DL_DIR / "top_10_errors.png", bbox_inches="tight", dpi=DPI)
     plt.show()
 else:
     logger.info("No errors found in test set!")
@@ -309,7 +436,7 @@ lgc = LayerGradCam(model, target_layer)
 num_samples = 5
 num_classes = len(dm.classes)
 plt.figure(figsize=(20, 4 * num_classes))
-np.random.seed(42)
+np.random.seed(DEFAULT_SEED)
 
 plot_idx = 1
 for class_idx in range(num_classes):
@@ -355,11 +482,12 @@ for class_idx in range(num_classes):
     plot_idx += num_samples - n
 
 plt.suptitle(
-    "Model Interpretability: Grad-CAM Heatmaps (5 Samples per Class)",
+    "Grad-CAM Heatmaps on Sample Jute Leaf Disease Images",
     fontsize=20,
     y=1.02,
 )
 plt.tight_layout()
+plt.savefig(FIGURES_DL_DIR / "grad_cam.png", bbox_inches="tight", dpi=DPI)
 plt.show()
 
 # %% [markdown]

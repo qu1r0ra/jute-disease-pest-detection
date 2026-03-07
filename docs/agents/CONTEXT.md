@@ -31,6 +31,10 @@ Welcome! This document provides crucial context, architectural design choices, a
 - **Line length**: Be mindful of line limits. If a line is too long, break it naturally.
 - **Mandatory Step**: _Always_ run `make format` after modifying `.py` files to ensure compliance before concluding a task.
 
+### 2.3. Error Handling & CLI Patterns
+
+- **Raise in Logic, Exit in Main**: Logic functions (e.g., in `scripts/` or `src/`) should never call `sys.exit()`. Instead, they should raise appropriate exceptions (`RuntimeError`, `FileNotFoundError`, etc.). The designated `if __name__ == "__main__":` block is responsible for catching these exceptions and calling `sys.exit(1)` to ensure clean integration with shell runners like `make`.
+
 ## 3. Architecture Pointers
 
 Review [`ARCHITECTURE.md`](../ARCHITECTURE.md) for full details, but keep these core concepts in mind:
