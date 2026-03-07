@@ -79,6 +79,7 @@ Both pipelines are evaluated identically using a combined **Experiment Aggregati
 
 - **Type Safety**: The codebase adheres to strict type checking using modern Python 3.10+ syntax (e.g., `list[str] | None`).
 - **Formatting**: Code is formatted and linted using `ruff` to ensure PEP 8 compliance.
+- **CLI Patterns**: Scripts follow the "Raise in Logic, Exit in Main" pattern to allow for programmatic re-use and unit testing of automation functions.
 - **Testing**: A comprehensive test suite (`tests/`) covers unit tests (logic verification) and slower integration tests (end-to-end pipeline).
 
 ## Tools & Dependencies
