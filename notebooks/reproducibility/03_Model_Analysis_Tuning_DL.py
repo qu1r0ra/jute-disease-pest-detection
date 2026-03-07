@@ -160,13 +160,24 @@ from jute_disease.data.datamodule import DataModule
 from jute_disease.models.dl.backbone import TimmBackbone
 from jute_disease.models.dl.classifier import Classifier
 
+from torchvision.datasets import ImageFolder
+
 dm = DataModule(data_dir="../../data/ml_split", batch_size=32)
-dm.setup("fit")
 dm.setup("test")
-train_loader = dm.train_dataloader()
+dm.setup("fit")
+
+# Create 'Clean' datasets for visualization (all using val_transform)
+# This ensures we see the actual image, not random augmentations/crops
+clean_train = ImageFolder(root=dm.train_dir, transform=dm.val_transform)
+clean_val = ImageFolder(root=dm.val_dir, transform=dm.val_transform)
+clean_test = ImageFolder(root=dm.test_dir, transform=dm.val_transform)
+
+# Clean loaders for inference
+clean_train_loader = DataLoader(clean_train, batch_size=32, shuffle=False, num_workers=4)
 val_loader = dm.val_dataloader()
 test_loader = dm.test_dataloader()
-pooled_dataset = ConcatDataset([dm.jute_train, dm.jute_val, dm.jute_test])
+
+pooled_dataset = ConcatDataset([clean_train, clean_val, clean_test])
 
 champion_dir = Path("../../artifacts/checkpoints/mobilenet_v2-l1_imagenet-dr_0.1")
 ckpt_path = list(champion_dir.glob("*.ckpt"))[0]
@@ -186,10 +197,11 @@ start_time = time.time()
 
 # Pool Val and Test for broader analysis
 # Pool all splits for a global view of the feature space
-loaders = [("Train", train_loader), ("Val", val_loader), ("Test", test_loader)]
+# We use clean_train_loader instead of dm.train_dataloader to avoid augmentations
+loaders = [("Train", clean_train_loader), ("Val", val_loader), ("Test", test_loader)]
 
 with torch.no_grad():
-    for _, loader in loaders:
+    for split_name, loader in loaders:
         for x, y in loader:
             x = x.to(device)
             # Extract features
@@ -244,6 +256,7 @@ for i, cls in enumerate(dm.classes):
 
 # Add double legend
 from matplotlib.lines import Line2D
+
 split_legend = [
     Line2D([0], [0], marker='o', color='gray', lw=0, markersize=8, label='Eval Set (Val/Test)'),
     Line2D([0], [0], marker='x', color='gray', lw=0, markersize=8, label='Train Set')
