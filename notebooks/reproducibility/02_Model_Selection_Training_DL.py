@@ -186,26 +186,28 @@ else:
 #
 # ![Validation F1 Score Comparison: Baseline DL Models](../../assets/figures/dl/val_f1_baseline.png)
 #
-# For context:
+# For context, we used the ff. pre-trained models:
 #
-# | Model | Source (`timm`) | Parameters (Approx) |
+# | Architecture | Hugging Face Model Name | Parameters |
 # | :--- | :--- | :--- |
-# | EfficientNet-B7 | `tf_efficientnet_b7.ns_jft_in1k` | ~66.35M |
-# | EfficientNet-B5 | `efficientnet_b5.sw_in12k_ft_in1k` | ~30.39M |
-# | ResNet-50 | `resnet50.a1_in1k` | ~25.56M |
-# | Inception v3 | `inception_v3.tv_in1k` | ~23.83M |
-# | MobileViT (small) | `mobilevit_s.cvnets_in1k` | ~5.58M |
-# | MobileNet V2 | `mobilenetv2_100.ra_in1k` | ~3.50M |
+# | EfficientNet-B7 | [tf_efficientnet_b7.ns_jft_in1k](https://huggingface.co/timm/tf_efficientnet_b7.ns_jft_in1k) | ~66.35M |
+# | EfficientNet-B5 | [efficientnet_b5.sw_in12k_ft_in1k](https://huggingface.co/timm/efficientnet_b5.sw_in12k_ft_in1k) | ~30.39M |
+# | ResNet-50 | [resnet50.a1_in1k](https://huggingface.co/timm/resnet50.a1_in1k) | ~25.56M |
+# | Inception v3 | [inception_v3.tv_in1k](https://huggingface.co/timm/inception_v3.tv_in1k) | ~23.83M |
+# | MobileViT (small) | [mobilevit_s.cvnets_in1k](https://huggingface.co/timm/mobilevit_s.cvnets_in1k) | ~5.58M |
+# | MobileNet V2 | [mobilenetv2_100.ra_in1k](https://huggingface.co/timm/mobilenetv2_100.ra_in1k) | ~3.50M |
+#
+# Note that the Hugging Face models above may have been pre-trained in different environments and with different techniques. Still, we made sure all our models were eventually pre-trained on ImageNet, hence the `_in1k` suffixes.
 
 # %% [markdown]
 # Some insights:
-# - **EfficientNet-B5** achieved the greatest top-1 validation F1. It has the second most approximate number of parameters, so it is somewhat expected.
-# - It is followed by **MobileNet V2**. Interestingly, MobileNetV2 achieves comparable performance with much less parameters. Hence, we decided to push through with MobileNet V2 for grid search.
-# - **MobileViT (small)** achieved the third-greatest top-1 validation F1.
-# - Interestingly, **EfficientNet-B7** achieved the worst top-1 validation F1 despite having the same architecture as MobileNet-B5, but ~2x the size. This is worth looking into.
+# - **EfficientNet-B5** achieved the greatest top-1 validation F1. It has the second most parameters, so it is somewhat expected.
+# - It is followed by **MobileNet V2**. Interestingly, MobileNetV2 achieved a performance comparable to EfficientNet-B5 despite having the least parameters. Hence, we decided to push through with MobileNet V2 for grid search. It is also more economical for us.
+# - **MobileViT (small)** achieved the third-greatest top-1 validation F1. It has the second-least parameters.
+# - Interestingly, **EfficientNet-B7** achieved the worst top-1 validation F1 despite having a similar architecture to MobileNet-B5, but with more than double its size (and thus, the most parameters).
 
 # %% [markdown] id="b53753d7"
-# That said, we can now proceed with obtaining our level 2 and level 3 checkpoints for our chosen DL architecture **MobileNet V2**. These checkpoints will be used for the grid search. Let's download the _PlantVillage_ and _PlantDoc_ datasets from Kaggle.
+# That said, we can now proceed with obtaining our level 2 and level 3 checkpoints for our chosen DL architecture, **MobileNet V2**. These checkpoints will be used for the grid search. Let's first download the [PlantVillage](https://www.kaggle.com/datasets/mohitsingh1804/plantvillage) and [PlantDoc](https://www.kaggle.com/datasets/nirmalsankalana/plantdoc-dataset) datasets from Kaggle.
 
 # %% id="4ccb68e2"
 from jute_disease.data.download import download_plant_doc, download_plant_village
@@ -217,6 +219,8 @@ download_plant_doc()
 # ### Level 2 Checkpoint
 #
 # `ImageNet (pre-trained) -> PlantVillage (fine-tuning)`
+#
+# For the fine-tuning stages, we will not freeze any parameters. Moreover, we will discard the classifier head and replace it with a new one with the number of neurons equal to the number of classes for the PlantVillage dataset (38).
 
 # %% id="bc2b9c26"
 # !uv run python src/jute_disease/engines/dl/pretrain.py \
@@ -226,9 +230,11 @@ download_plant_doc()
 # %% [markdown] id="8edb47106e1a46a883d545849b8ab81b"
 # ### Level 3 Checkpoint
 #
-# Note the `--base_weights` argument. We are effectively resuming from the Level 2 checkpoint.
-#
 # `ImageNet (pre-trained) -> PlantVillage (fine-tuning) -> PlantDoc (fine-tuning)`
+#
+# Note the `--base_weights` argument. We are effectively resuming from the level 2 checkpoint.
+#
+# Like level 2, we will not freeze any parameters and we will discard the classifier head, replacing it with a new one with the number of neurons equal to the number of classes for the PlantDoc dataset (27).
 
 # %% id="69798b96"
 # !uv run python src/jute_disease/engines/dl/pretrain.py \
@@ -237,18 +243,37 @@ download_plant_doc()
 #   --output_path artifacts/checkpoints/pretrained/mobilenet_v2-plantvillage-plantdoc.ckpt
 
 # %% [markdown] id="a1cf8c02"
-# > continue here
-#
-# **Grid search on different levels of transfer learning on MobileNet V2**
+# Now that we have level 2 and level 3 checkpoints, we can proceed with the grid search.
 
 # %% id="32809cc5"
 # !uv run python scripts/run_grid_search.py configs/grid/mobilenet_v2_grid.yaml
 
 # %% [markdown]
+# > continue here
+#
+# Stuff to add
+# - some grid search data visualizations
+# - analysis
+#   - conclusion that Level 1 MobileNet V2 with DR 0.1 is the best
+
+# %% [markdown]
 # ## Extras
+
+# %% [markdown]
+# If you inspect the codebase, you will notice that the image preprocessing pipeline includes cropping the images to 256x256 pixels. We got curious and trained a level 1 MobileNet V2 with dropout rates 0.0 and 0.1 but with images cropped to 512x512 pixels. We wanted to compare their performance to their 256x256 counterparts.
 
 # %%
 # !make train-dl-512
+
+# %% [markdown]
+# We obtained the ff. results:
+#
+# > continue here
+#
+# Stuff to add
+# - some data visualizations
+# - analysis
+#   - conclusion that 512x512 may actually be worse, but we still need statistical validation
 
 # %% [markdown]
 # ## References
