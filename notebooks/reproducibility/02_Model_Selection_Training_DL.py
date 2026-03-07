@@ -263,7 +263,7 @@ download_plant_doc()
 # If you inspect the codebase, you will notice that the image preprocessing pipeline includes cropping the images to 256x256 pixels. We got curious and trained a level 1 MobileNet V2 with dropout rates 0.0 and 0.1 but with images cropped to 512x512 pixels. We wanted to compare their performance to their 256x256 counterparts.
 
 # %%
-# !make train-dl-512
+# !uv run python scripts/train_dl_512.py
 
 # %% [markdown]
 # We obtained the ff. results:
