@@ -61,7 +61,9 @@ def run_all_dl(
         ckpt_dir = Path("artifacts/checkpoints") / model_name
         ckpts = list(ckpt_dir.glob("*.ckpt"))
         if not ckpts:
-            raise FileNotFoundError(f"No checkpoint found for {model_name} in {ckpt_dir}.")
+            raise FileNotFoundError(
+                f"No checkpoint found for {model_name} in {ckpt_dir}."
+            )
 
         best_ckpt = ckpts[0]
 

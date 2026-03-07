@@ -153,14 +153,14 @@ import time
 
 import torch
 import torch.nn.functional as F
+from matplotlib.lines import Line2D
 from sklearn.manifold import TSNE
-from torch.utils.data import ConcatDataset
+from torch.utils.data import ConcatDataset, DataLoader
+from torchvision.datasets import ImageFolder
 
 from jute_disease.data.datamodule import DataModule
 from jute_disease.models.dl.backbone import TimmBackbone
 from jute_disease.models.dl.classifier import Classifier
-
-from torchvision.datasets import ImageFolder
 
 dm = DataModule(data_dir="../../data/ml_split", batch_size=32)
 dm.setup("test")
@@ -173,7 +173,9 @@ clean_val = ImageFolder(root=dm.val_dir, transform=dm.val_transform)
 clean_test = ImageFolder(root=dm.test_dir, transform=dm.val_transform)
 
 # Clean loaders for inference
-clean_train_loader = DataLoader(clean_train, batch_size=32, shuffle=False, num_workers=4)
+clean_train_loader = DataLoader(
+    clean_train, batch_size=32, shuffle=False, num_workers=4
+)
 val_loader = dm.val_dataloader()
 test_loader = dm.test_dataloader()
 
@@ -242,24 +244,42 @@ for i, cls in enumerate(dm.classes):
     # Train set (faded 'x' markers)
     mask_train = (targets == i) & (splits == "Train")
     plt.scatter(
-        feat_2d[mask_train, 0], feat_2d[mask_train, 1],
-        color=colors[i], marker="x", s=25, alpha=0.1, label=None
+        feat_2d[mask_train, 0],
+        feat_2d[mask_train, 1],
+        color=colors[i],
+        marker="x",
+        s=25,
+        alpha=0.1,
+        label=None,
     )
 
     # Eval set (solid 'o' markers)
     mask_eval = (targets == i) & (splits != "Train")
     plt.scatter(
-        feat_2d[mask_eval, 0], feat_2d[mask_eval, 1],
-        color=colors[i], marker="o", s=70, alpha=0.8, edgecolors="white",
-        linewidth=0.5, label=cls
+        feat_2d[mask_eval, 0],
+        feat_2d[mask_eval, 1],
+        color=colors[i],
+        marker="o",
+        s=70,
+        alpha=0.8,
+        edgecolors="white",
+        linewidth=0.5,
+        label=cls,
     )
 
 # Add double legend
-from matplotlib.lines import Line2D
 
 split_legend = [
-    Line2D([0], [0], marker='o', color='gray', lw=0, markersize=8, label='Eval Set (Val/Test)'),
-    Line2D([0], [0], marker='x', color='gray', lw=0, markersize=8, label='Train Set')
+    Line2D(
+        [0],
+        [0],
+        marker="o",
+        color="gray",
+        lw=0,
+        markersize=8,
+        label="Eval Set (Val/Test)",
+    ),
+    Line2D([0], [0], marker="x", color="gray", lw=0, markersize=8, label="Train Set"),
 ]
 leg1 = plt.legend(handles=split_legend, loc="lower left", title="Splits")
 plt.gca().add_artist(leg1)
@@ -286,16 +306,27 @@ for i, cls in enumerate(dm.classes):
     # Train set
     mask_train = (targets == i) & (splits == "Train")
     plt.scatter(
-        feat_umap[mask_train, 0], feat_umap[mask_train, 1],
-        color=colors[i], marker="x", s=25, alpha=0.1, label=None
+        feat_umap[mask_train, 0],
+        feat_umap[mask_train, 1],
+        color=colors[i],
+        marker="x",
+        s=25,
+        alpha=0.1,
+        label=None,
     )
 
     # Eval set
     mask_eval = (targets == i) & (splits != "Train")
     plt.scatter(
-        feat_umap[mask_eval, 0], feat_umap[mask_eval, 1],
-        color=colors[i], marker="o", s=70, alpha=0.8, edgecolors="white",
-        linewidth=0.5, label=cls
+        feat_umap[mask_eval, 0],
+        feat_umap[mask_eval, 1],
+        color=colors[i],
+        marker="o",
+        s=70,
+        alpha=0.8,
+        edgecolors="white",
+        linewidth=0.5,
+        label=cls,
     )
 
 leg1 = plt.legend(handles=split_legend, loc="lower left", title="Splits")
