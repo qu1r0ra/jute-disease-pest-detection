@@ -6,7 +6,7 @@ This document describes the architectural design and directory structure of the 
 
 ```text
 .
-├── artifacts/              # Generated models, checkpoints, logs, and experiment results
+├── artifacts/              # Models, checkpoints, logs, and experiment context
 ├── configs/                # Lightning CLI configuration files (.yaml) for DL models
 ├── data/                   # Dataset storage (by_class/, ml_split/, unlabeled/)
 ├── docs/                   # Project documentation and specifications
@@ -48,7 +48,8 @@ The project exposes unified CLI entry points defined in `pyproject.toml`:
 The DL pipeline is built using **PyTorch Lightning** for state-of-the-art reproducibility and boilerplate reduction.
 
 - **LightningModule (`Classifier`)**: The core class handling the training loop, optimization, logging, and metrics.
-- **Backbone System**: Uses a generic `TimmBackbone` to wrap any model from the `timm` library, allowing for easy experimentation with different architectures (e.g., MobileNetV2, ResNet-50, Inception v3, EfficientNet-B5, EfficientNet-B7). Supporting global/local input resolution via the `--data.image_size` parameter.
+- **Backbone System**: Uses a generic `TimmBackbone` to wrap any model from the `timm` library, allowing for easy experimentation with different architectures.
+- **Transfer Learning Strategy**: While Multi-Stage Transfer Learning (MSTL) using PlantVillage and PlantDoc was evaluated, our findings indicate that generic **ImageNet-1K pre-training** provides the most robust baseline. Consequently, our champion configurations focus on Level 1 transfer learning (ImageNet → Jute) to minimize over-specialization.
 - **Lightning CLI**: Training is driven by configuration files in `configs/`, promoting "Configuration as Code".
 
 ### 4. Machine Learning Framework (Scikit-learn Adapters)

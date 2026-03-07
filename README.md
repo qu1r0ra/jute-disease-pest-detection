@@ -29,7 +29,7 @@ A high-level overview of the repository organization:
 
 ```text
 .
-├── artifacts/          # Generated checkpoints, models, and logs
+├── artifacts/          # Generated checkpoints, models, logs, and project context
 ├── configs/            # Training configurations (.yaml) for Lightning CLI
 ├── docs/               # Technical documentation
 │   ├── agents/         # AI agent-specific directives
