@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 from jute_disease.utils import get_logger
+from jute_disease.utils.constants import BATCH_SIZE, NUM_WORKERS
 
 logger = get_logger(__name__)
 
@@ -41,9 +42,9 @@ def check_all_dl(
             "--config",
             str(config),
             "--trainer.fast_dev_run=True",
-            "--data.num_workers=4",
+            f"--data.num_workers={NUM_WORKERS}",
             "--data.pin_memory=True",
-            "--data.batch_size=32",
+            f"--data.batch_size={BATCH_SIZE}",
         ]
 
         result = subprocess.run(cmd)

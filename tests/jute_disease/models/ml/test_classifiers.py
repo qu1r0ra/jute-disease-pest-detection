@@ -14,12 +14,13 @@ from jute_disease.models.ml import (
     SklearnClassifier,
     SupportVectorMachine,
 )
+from jute_disease.utils.constants import DEFAULT_SEED
 
 
 @pytest.fixture
 def xy() -> tuple[np.ndarray, np.ndarray]:
     """Tiny 2-class dataset."""
-    rng = np.random.default_rng(42)
+    rng = np.random.default_rng(DEFAULT_SEED)
     X = np.abs(rng.random((30, 8))).astype(np.float32)
     y = np.array([0, 1] * 15)
     return X, y
@@ -116,14 +117,14 @@ def test_classifiers_deterministic_seed() -> None:
     """Verifies that passing a random_state yields identical models."""
     from jute_disease.models.ml import RandomForest
 
-    rng = np.random.default_rng(42)
+    rng = np.random.default_rng(DEFAULT_SEED)
     X = np.abs(rng.random((50, 8))).astype(np.float32)
     y = np.random.randint(0, 2, size=50)
 
     # Without seeding, random forests are non-deterministic between instances.
     # With a seed, their parameters should be identical after fitting.
-    rf1 = RandomForest(random_state=42)
-    rf2 = RandomForest(random_state=42)
+    rf1 = RandomForest(random_state=DEFAULT_SEED)
+    rf2 = RandomForest(random_state=DEFAULT_SEED)
 
     rf1.fit(X, y)
     rf2.fit(X, y)
@@ -138,8 +139,8 @@ def test_classifiers_unsupported_random_state_ignored() -> None:
     """Classifiers that do not support random_state shouldn't crash if passed one."""
     from jute_disease.models.ml import GaussianNaiveBayes, KNearestNeighbors
 
-    knn = KNearestNeighbors(random_state=42)
-    gnb = GaussianNaiveBayes(random_state=42)
+    knn = KNearestNeighbors(random_state=DEFAULT_SEED)
+    gnb = GaussianNaiveBayes(random_state=DEFAULT_SEED)
 
     assert knn is not None
     assert gnb is not None
