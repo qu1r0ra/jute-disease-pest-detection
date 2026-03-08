@@ -106,16 +106,16 @@ class CraftedFeatureExtractor(BaseFeatureExtractor):
             feature_vector=True,
         )
 
-        # Gabor Features
-        gabor_features = []
-        for kernel in self.gabor_kernels:
-            fimg = cv2.filter2D(gray, cv2.CV_8UC3, kernel)
-            gabor_features.append(np.mean(fimg))
-            gabor_features.append(np.std(fimg))
-        gabor_features = np.array(gabor_features)
+        # # Gabor Features
+        # gabor_features = []
+        # for kernel in self.gabor_kernels:
+        #     fimg = cv2.filter2D(gray, cv2.CV_8UC3, kernel)
+        #     gabor_features.append(np.mean(fimg))
+        #     gabor_features.append(np.std(fimg))
+        # gabor_features = np.array(gabor_features)
         
         combined = np.hstack(
-            [color_moments, color_hist, lbp_hist, glcm_features, hog_features, gabor_features]
+            [color_moments, color_hist, lbp_hist, glcm_features, hog_features]
         )
 
         return combined.astype(np.float32)
