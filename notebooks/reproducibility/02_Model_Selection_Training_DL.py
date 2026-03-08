@@ -180,7 +180,7 @@ else:
 # !uv run python scripts/train_all_dl.py
 
 # %% [markdown]
-# At this point, we have finished training the DL baselines. If training went well, you should have obtained results similar to ours, which can be viewed in this run group: <https://wandb.ai/grade-descent/jute-disease-detection/groups/Baseline%20DL%20Models/workspace>.
+# At this point, we have finished training the DL baselines. If training went well, you should have obtained results similar to ours, which can be viewed [here](https://wandb.ai/grade-descent/jute-disease-detection/groups/Baseline%20DL%20Models/workspace).
 #
 # Looking at the validation F1 graph:
 #
@@ -249,31 +249,46 @@ download_plant_doc()
 # !uv run python scripts/run_grid_search.py configs/grid/mobilenet_v2_grid.yaml
 
 # %% [markdown]
-# > continue here
+# Our results for the MobileNet V2 grid search can be viewed [here](https://wandb.ai/grade-descent/jute-disease-detection/groups/MobileNet%20V2%20Grid/workspace).
 #
-# Stuff to add
-# - some grid search data visualizations
-# - analysis
-#   - conclusion that Level 1 MobileNet V2 with DR 0.1 is the best
+# Looking at the graph of validation accuracy over global steps:
+#
+# ![MobileNet V2 Grid Validation Accuracy Graph](../../assets/figures/dl/val_acc_mobilenet_v2_grid.png)
+#
+
+# %% [markdown]
+# Oof, that's pretty annoying to analyze. Maybe looking at the test accuracy graph and a list of models sorted by test accuracy will help:
+#
+# > Such is the pain of relying solely on WandB visualizations. After our first full run and several other mistakes, we realized the importance of saving experiment logs and metrics into a local CSV or parquet file to give us flexibility to visualize data in our own way.
+#
+# ![MobileNet V2 Grid Test Accuracy Graph](../../assets/figures/dl/test_acc_mobilenet_v2_grid.png)
+#
+# ![MobileNet V2 Grid Models Sorted by Test Accuracy](../../assets/figures/dl/grid_models_sorted_test_acc.png)
+
+# %% [markdown]
+# For context, the test accuracy of each model was computed on the best checkpoint obtained during training. By default, PyTorch Lightning determines the best checkpoint as the one that achieved the lowest validation loss, though you could set the criterion yourself. We went with the default.
+#
+# Looking at the graphs, we got the ff. insights:
+# - Level 1 MobileNet V2 checkpoints (MobileNet V2 pre-trained on ImageNet-1K with no fine-tuning whatsoever) led to the best test accuracies, followed by level 3 checkpoints (fine-tuned on PlantVillage then PlantDoc), and lastly, level 2 checkpoints (fine-tuned on PlantVillage). This went against our hypothesis that fine-tuning on related datasets would improve model performance.
+# - Within the same checkpoint groups:
+#   - Dropout rates of 0.0 and 0.1 led to greater test accuracies than their 0.2 counterparts. This may suggest that dropout rates of 0.2 or higher may hurt model performance, though this has yet to be statistically tested.
+#   - A dropout rate of 0.1 led to the greatest test accuracies, followed by 0.0 and 0.2.
+#
+# Thus, we concluded that the MobileNet V2 pre-trained on ImageNet-1K with a dropout rate of 0.1 was the best DL model to push through with (and potentially continue fine-tuning on) for our task of jute leaf disease classification.
+#
+# At this point, we decided to conduct error analysis and see what can be improved.
 
 # %% [markdown]
 # ## Extras
 
 # %% [markdown]
-# If you inspect the codebase, you will notice that the image preprocessing pipeline includes cropping the images to 256x256 pixels. We got curious and trained a level 1 MobileNet V2 with dropout rates 0.0 and 0.1 but with images cropped to 512x512 pixels. We wanted to compare their performance to their 256x256 counterparts.
+# If you inspect the codebase, you will notice that the image preprocessing pipeline includes cropping the images to 256x256 pixels for standardization. Our intuition told us that training with higher-resolution images may improve MobileNet V2 performance. We got curious, so we trained a level 1 MobileNet V2 with dropout rates 0.0 and 0.1 but with images cropped to 512x512 pixels. We wanted to compare their performance to their 256x256 pixel counterparts.
 
 # %%
 # !uv run python scripts/train_dl_512.py
 
 # %% [markdown]
-# We obtained the ff. results:
-#
-# > continue here
-#
-# Stuff to add
-# - some data visualizations
-# - analysis
-#   - conclusion that 512x512 may actually be worse, but we still need statistical validation
+# Our results can be viewed [here](https://wandb.ai/grade-descent/jute-disease-detection/groups/MobileNet%20V2%20512px/workspace). They will be compared against their 256x256 pixel counterparts in the [next DL notebook](./03_Model_Analysis_Tuning_DL.py).
 
 # %% [markdown]
 # ## References
