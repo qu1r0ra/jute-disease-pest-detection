@@ -8,6 +8,7 @@ from pathlib import Path
 import wandb
 
 from jute_disease.utils import get_logger
+from jute_disease.utils.constants import CHECKPOINTS_DIR
 
 logger = get_logger(__name__)
 
@@ -42,7 +43,7 @@ def run_dl_512() -> None:
         raise RuntimeError(f"Failed during fit with exit code {result.returncode}.")
 
     # 2. Test
-    ckpt_dir = Path("artifacts/checkpoints/mobilenet_v2_512")
+    ckpt_dir = CHECKPOINTS_DIR / "mobilenet_v2_512"
     if not ckpt_dir.exists():
         raise FileNotFoundError(f"Checkpoint directory not found: {ckpt_dir}")
 

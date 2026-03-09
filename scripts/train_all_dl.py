@@ -9,6 +9,7 @@ from pathlib import Path
 import wandb
 
 from jute_disease.utils import get_logger
+from jute_disease.utils.constants import CHECKPOINTS_DIR
 
 logger = get_logger(__name__)
 
@@ -58,7 +59,7 @@ def run_all_dl(
 
         logger.info(f"Testing {model_name}...")
 
-        ckpt_dir = Path("artifacts/checkpoints") / model_name
+        ckpt_dir = CHECKPOINTS_DIR / model_name
         ckpts = list(ckpt_dir.glob("*.ckpt"))
         if not ckpts:
             raise FileNotFoundError(

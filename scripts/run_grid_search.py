@@ -8,7 +8,7 @@ import wandb
 import yaml
 
 from jute_disease.utils import get_logger
-from jute_disease.utils.constants import LOGS_DIR
+from jute_disease.utils.constants import CHECKPOINTS_DIR, LOGS_DIR
 
 logger = get_logger(__name__)
 
@@ -86,9 +86,7 @@ def _get_modified_base_config(
     for cb in trainer_cfg.get("callbacks", []):
         class_path = cb.get("class_path", "")
         if "ModelCheckpoint" in class_path:
-            cb.setdefault("init_args", {})["dirpath"] = (
-                f"artifacts/checkpoints/{exp_name}"
-            )
+            cb.setdefault("init_args", {})["dirpath"] = str(CHECKPOINTS_DIR / exp_name)
         elif "EarlyStopping" in class_path and patience is not None:
             cb.setdefault("init_args", {})["patience"] = patience
 
@@ -112,7 +110,7 @@ def _get_modified_base_config(
     )
     trainer_cfg["logger"] = loggers
 
-    temp_dir = Path("artifacts/checkpoints/.temp_configs")
+    temp_dir = CHECKPOINTS_DIR / ".temp_configs"
     temp_dir.mkdir(parents=True, exist_ok=True)
     temp_path = temp_dir / f"{exp_name}.yaml"
     with open(temp_path, "w") as f:
@@ -229,7 +227,7 @@ def run_grid_search(
 
                 logger.info(f"Testing Phase 2 experiment {exp_name}...")
 
-                ckpt_dir = Path("artifacts/checkpoints") / exp_name
+                ckpt_dir = CHECKPOINTS_DIR / exp_name
                 ckpts = list(ckpt_dir.glob("*.ckpt"))
                 if not ckpts:
                     logger.error(
@@ -258,19 +256,12 @@ def run_grid_search(
                     logger.error(f"Error testing Phase 2 experiment {exp_name}: {e}")
 
         if run_exp_names:
-            out_path = LOGS_DIR / "phase1_transfer_grid" / "aggregated_grid_metrics.csv"
-            agg_cmd = [
-                "uv",
-                "run",
-                "python",
-                "scripts/aggregate_results.py",
-                "--exp-names",
-                ",".join(run_exp_names),
-                "--output",
-                str(out_path),
-            ]
-            logger.info("Running metric aggregation...")
-            subprocess.run(agg_cmd, env=env)
+            _aggregate_metrics(
+                run_exp_names,
+                output_csv=LOGS_DIR
+                / "phase2_finetune_grid"
+                / f"aggregated_grid_metrics_{model_name.lower()}.csv",
+            )
         return
 
     # Phase 1 Execution
@@ -340,9 +331,9 @@ def run_grid_search(
                 logger.error(f"Fit failed for {exp_name}: {e}")
                 continue
 
-            logger.info(f"Testing experiment {exp_name}...")
+            logger.info(f"Testing Phase 1 experiment {exp_name}...")
 
-            ckpt_dir = Path("artifacts/checkpoints") / exp_name
+            ckpt_dir = CHECKPOINTS_DIR / exp_name
             ckpts = list(ckpt_dir.glob("*.ckpt"))
             if not ckpts:
                 logger.error(
