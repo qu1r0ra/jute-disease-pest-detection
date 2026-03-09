@@ -166,20 +166,20 @@ else:
     df = df_phase1
 
 plt.figure(figsize=(12, 6))
-    comparison_names = [
-        "mobilenet_v2-l1_imagenet-dr_0.1",
-        "mobilenet_v2-512px-dr_0.1",
-        "mobilenet_v2-l1_imagenet-dr_0.0",
-        "mobilenet_v2-512px-dr_0.0",
-    ]
-    comp_df = df[df["Experiment"].isin(comparison_names)].copy()
-    comp_df["Resolution"] = comp_df["Experiment"].apply(
-        lambda x: "512px" if "512px" in x else "256px"
-    )
-    comp_df["Dropout Rate"] = comp_df["Experiment"].apply(
-        lambda x: "0.1" if "dr_0.1" in x else "0.0"
-    )
-    comp_df = comp_df.sort_values("Dropout Rate")
+comparison_names = [
+    "mobilenet_v2-l1_imagenet-dr_0.1",
+    "mobilenet_v2-512px-dr_0.1",
+    "mobilenet_v2-l1_imagenet-dr_0.0",
+    "mobilenet_v2-512px-dr_0.0",
+]
+comp_df = df[df["Experiment"].isin(comparison_names)].copy()
+comp_df["Resolution"] = comp_df["Experiment"].apply(
+    lambda x: "512px" if "512px" in x else "256px"
+)
+comp_df["Dropout Rate"] = comp_df["Experiment"].apply(
+    lambda x: 0.1 if "dr_0.1" in x else 0.0
+)
+comp_df = comp_df.sort_values("Dropout Rate")
 
 ax_bar = sns.barplot(
     data=comp_df,
@@ -483,8 +483,7 @@ if len(wrong_indices) > 0:
         img, label = pooled_dataset[idx]
         img_disp = img.permute(1, 2, 0).numpy()
         img_disp = (
-            img_disp * np.array([0.229, 0.224, 0.225])
-            + np.array([0.485, 0.456, 0.406])
+            img_disp * np.array([0.229, 0.224, 0.225]) + np.array([0.485, 0.456, 0.406])
         ).clip(0, 1)
 
         plt.subplot(2, 5, i + 1)
@@ -569,14 +568,11 @@ for class_idx in range(num_classes):
 
         img_disp = img.permute(1, 2, 0).numpy()
         img_disp = (
-            img_disp * np.array([0.229, 0.224, 0.225])
-            + np.array([0.485, 0.456, 0.406])
+            img_disp * np.array([0.229, 0.224, 0.225]) + np.array([0.485, 0.456, 0.406])
         ).clip(0, 1)
 
         h, w = img_disp.shape[:2]
-        heatmap_upsampled = zoom(
-            heatmap, (h / heatmap.shape[0], w / heatmap.shape[1])
-        )
+        heatmap_upsampled = zoom(heatmap, (h / heatmap.shape[0], w / heatmap.shape[1]))
 
         plt.subplot(num_classes, num_samples, plot_idx)
         plt.imshow(img_disp)
