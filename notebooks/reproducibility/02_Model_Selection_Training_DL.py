@@ -215,6 +215,8 @@ else:
 # - Interestingly, **EfficientNet-B7** achieved the worst top-1 validation F1 despite having a similar architecture to EfficientNet-B5, but with more than double its size (and thus, the most parameters).
 
 # %% [markdown] id="b53753d7"
+# ## Checkpoints for Grid Search
+#
 # That said, we can now proceed with obtaining our level 2 and level 3 checkpoints for our chosen DL architecture, **MobileNet V2**. These checkpoints will be used for the grid search. Let's first download the [PlantVillage](https://www.kaggle.com/datasets/mohitsingh1804/plantvillage) and [PlantDoc](https://www.kaggle.com/datasets/nirmalsankalana/plantdoc-dataset) datasets from Kaggle.
 
 # %% id="4ccb68e2"
