@@ -19,7 +19,7 @@
 # %% [markdown]
 # # Deep Learning - Model Analysis and Fine-Tuning
 #
-# In the [previous notebook](./02_Model_Selection_Training_DL.ipynb), we trained baseline DL models and chose a configuration to move forward with. We concluded with a MobileNet V2 pre-trained on ImageNet-1K with a dropout rate of 0.01 as our best model moving forward.
+# In the [previous notebook](./02_Model_Selection_Training_DL.ipynb), we trained baseline DL models and chose a configuration to move forward with. We concluded with a MobileNet V2 pre-trained on ImageNet-1K with a dropout rate of 0.1 as our best model moving forward.
 #
 # In this notebook, we will analyze the model's performance and fine-tune chosen hyperparameters (not to be confused with fine-tuning for model training) in the hopes of improving its performance.
 #
@@ -116,9 +116,11 @@ else:
     print("Symlink failed :<")
 
 # %% [markdown]
-# ## Quantitative Performance
+# ## Model Analysis
 #
-# Let's begin by analyzing the image resolution's effect on our model's performance. Recall that our models were originally trained on 256x256 pixel images and that we trained 512x512 pixel counterparts for the pre-trained MobileNet V2 with dropout rates 0.0 and 0.1 for comparison.
+# ### Impact of a Higher Image Resolution on Model Performance
+#
+# Let's begin by analyzing how training on a higher image resolution impacts our model's performance. Recall that our models were originally trained on 256x256 pixel images and that we trained 512x512 pixel counterparts for the pre-trained MobileNet V2 with dropout rates 0.0 and 0.1 for comparison.
 
 # %%
 import matplotlib.pyplot as plt
@@ -189,7 +191,7 @@ ax_bar = sns.barplot(
     palette="viridis",
 )
 plt.ylim(0.8, 0.95)
-plt.title("Impact of Resolution on Test Accuracy (MobileNetV2)")
+plt.title("Impact of Image Resolution on Test Accuracy (MobileNetV2-DR 0.1)")
 plt.xlabel("Dropout Rate")
 plt.ylabel("Test Accuracy")
 plt.grid(axis="y", linestyle="--", alpha=0.7)
@@ -217,10 +219,15 @@ display(
 
 # %% [markdown]
 # Some insights:
-# - Training on 512x512 pixel images appears to lead to worse test metrics compared to training on 256x256 pixel images.
-# - A dropout rate of 0.1 appears to lead to a higher test F1 compared to their 0.0 counterparts, though likely statistically insignificant given our sample. This suggests that slightly increased regularization may improve our models' performance on the dataset.
+# - Training on 512x512 pixel images appears to lead to worse performance compared to training on 256x256 pixel images.
+# - A dropout rate of 0.1 appears to lead to a higher test F1 compared to their 0.0 counterparts, though likely statistically insignificant given our sample. This may suggest that slightly increased regularization may improve our model's performance on the dataset.
 #
-# Hence, our initial hypothesis is disproven (but not in a formal statistical manner). Now let's analyze how training went for our best MobileNet by inspecting its training and validation loss and accuracy curves.
+# Hence, our initial hypothesis of training on higher-resolution images is disproven, though not in a formal statistical manner.
+
+# %% [markdown]
+# ### Loss and Accuracy Curves
+#
+# Now let's analyze how training went for our best MobileNet model by inspecting its training and validation loss and accuracy curves.
 
 # %%
 history_dir = LOGS_DIR / "phase1_transfer_grid" / "mobilenet_v2-l1_imagenet-dr_0.1"
@@ -253,14 +260,14 @@ fig, ax = plt.subplots(1, 2, figsize=(15, 5))
 
 loss_cols = [c for c in ["train_loss", "val_loss"] if c in epoch_data.columns]
 epoch_data[loss_cols].plot(ax=ax[0])
-ax[0].set_title("Training and Validation Loss (MobileNetV2)")
+ax[0].set_title("Training and Validation Loss (MobileNet V2-DR 0.1)")
 ax[0].set_xlabel("Epoch")
 ax[0].set_ylim(0, 1.2)
 ax[0].grid(True, alpha=0.3)
 
 acc_cols = [c for c in ["train_acc", "val_acc"] if c in epoch_data.columns]
 epoch_data[acc_cols].plot(ax=ax[1])
-ax[1].set_title("Training and Validation Accuracy (MobileNetV2)")
+ax[1].set_title("Training and Validation Accuracy (MobileNet V2-DR 0.1)")
 ax[1].set_xlabel("Epoch")
 ax[1].set_ylim(0.5, 1)
 ax[1].grid(True, alpha=0.3)
@@ -270,19 +277,19 @@ plt.savefig(FIGURES_DL_DIR / "training_history.png", bbox_inches="tight", dpi=DP
 plt.show()
 
 # %% [markdown]
-# ### Phase 1 Confusion Matrix
-#
-# > Replace the placeholder below with the confusion matrix downloaded from Weights & Biases for the Phase 1 baseline run.
-#
-# ![Phase 1 CM](path/to/phase1_cm.png)
-
-# %% [markdown]
 # Some insights:
 # - Train loss appears to be consistently higher than validation loss.
 #   - This is possibly explained by how our data is heavily augmented during training but not during validation, making it more difficult for the model to get correct predictions on the training set per epoch.
 #   - Furthermore, due to dropout, some neurons are deactivated during training, making the task more difficult.
 # - Train accuracy appears to be consistently lower than validation accuracy. This is possibly explained by the same reason as above. Fortunately, the gap between the two appears to decrease over time, indicating that the model was able to generalize better over time.
 # - Regardless, it is worth inspecting how extending the training time will affect the training and validation metrics. We may have cut it too short by setting the early stopping patience low (originally 5). During fine-tuning, we will increase it to 20 to see whether the metrics will converge.
+
+# %% [markdown]
+# ### Confusion Matrix
+#
+# Now let's analyze 
+#
+# ![Phase 1 CM](path/to/phase1_cm.png)
 
 # %% [markdown]
 # ## Latent Space Analysis
