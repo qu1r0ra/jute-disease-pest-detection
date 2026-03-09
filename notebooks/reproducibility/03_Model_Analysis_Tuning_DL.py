@@ -45,6 +45,9 @@
 # !uv pip install --system -e .
 # !uv sync
 
+# %% [markdown]
+# > If you encounter `ModuleNotFoundError`, you can simply restart the session and rerun the cell below.
+
 # %%
 # ruff: noqa: T201
 from jute_disease.utils.constants import DEFAULT_SEED
