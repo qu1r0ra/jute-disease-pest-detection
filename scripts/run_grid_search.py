@@ -8,6 +8,7 @@ import wandb
 import yaml
 
 from jute_disease.utils import get_logger
+from jute_disease.utils.constants import LOGS_DIR
 
 logger = get_logger(__name__)
 
@@ -73,8 +74,9 @@ def _get_modified_base_config(
     base_config_path: str | Path,
     exp_name: str,
     wandb_group: str,
+    save_dir_suffix: str = "",
     patience: int | None = None,
-) -> str:
+) -> Path:
     """Read base config, update loggers/checkpoints, and return temp path."""
     with open(base_config_path) as f:
         config = yaml.safe_load(f) or {}
@@ -101,10 +103,11 @@ def _get_modified_base_config(
             init_args["name"] = exp_name
             init_args["group"] = wandb_group
 
+    save_dir = f"{LOGS_DIR}/{save_dir_suffix}"
     loggers.append(
         {
             "class_path": "lightning.pytorch.loggers.CSVLogger",
-            "init_args": {"save_dir": "artifacts/logs", "name": exp_name},
+            "init_args": {"save_dir": save_dir, "name": exp_name},
         }
     )
     trainer_cfg["logger"] = loggers
@@ -114,7 +117,7 @@ def _get_modified_base_config(
     temp_path = temp_dir / f"{exp_name}.yaml"
     with open(temp_path, "w") as f:
         yaml.dump(config, f)
-    return str(temp_path)
+    return Path(temp_path)
 
 
 def run_grid_search(
@@ -181,10 +184,15 @@ def run_grid_search(
                 short_level = level_name.replace("level_", "l")
                 exp_name = f"{model_name.lower()}-{short_level}-lr_{lr}-wd_{wd}"
                 wandb_group = f"{model_name}_Finetune_Grid"
+                log_group = "phase2_finetune_grid"
                 run_exp_names.append(exp_name)
                 patience = fixed_params.get("early_stopping_patience")
                 exp_config_path = _get_modified_base_config(
-                    base_config_path, exp_name, wandb_group, patience=patience
+                    base_config_path,
+                    exp_name,
+                    wandb_group,
+                    log_group,
+                    patience=patience,
                 )
 
                 cmd = [
@@ -249,12 +257,20 @@ def run_grid_search(
                 except subprocess.CalledProcessError as e:
                     logger.error(f"Error testing Phase 2 experiment {exp_name}: {e}")
 
-        _aggregate_metrics(
-            run_exp_names,
-            output_csv=Path(
-                f"artifacts/grid_search_{model_name.lower()}_phase2_metrics.csv"
-            ),
-        )
+        if run_exp_names:
+            out_path = LOGS_DIR / "phase1_transfer_grid" / "aggregated_grid_metrics.csv"
+            agg_cmd = [
+                "uv",
+                "run",
+                "python",
+                "scripts/aggregate_results.py",
+                "--exp-names",
+                ",".join(run_exp_names),
+                "--output",
+                str(out_path),
+            ]
+            logger.info("Running metric aggregation...")
+            subprocess.run(agg_cmd, env=env)
         return
 
     # Phase 1 Execution
@@ -279,10 +295,15 @@ def run_grid_search(
             short_level = level_name.replace("level_", "l")
             exp_name = f"{model_name.lower()}-{short_level}-dr_{dropout}"
             wandb_group = f"{model_name}_Transfer_Grid"
+            log_group = "phase1_transfer_grid"
             run_exp_names.append(exp_name)
             patience = fixed_params.get("early_stopping_patience")
             exp_config_path = _get_modified_base_config(
-                base_config_path, exp_name, wandb_group, patience=patience
+                base_config_path,
+                exp_name,
+                wandb_group,
+                log_group,
+                patience=patience,
             )
 
             cmd = [
@@ -316,7 +337,7 @@ def run_grid_search(
             try:
                 subprocess.run(cmd, env=env, check=True)
             except subprocess.CalledProcessError as e:
-                logger.error(f"Error running experiment {exp_name}: {e}")
+                logger.error(f"Fit failed for {exp_name}: {e}")
                 continue
 
             logger.info(f"Testing experiment {exp_name}...")

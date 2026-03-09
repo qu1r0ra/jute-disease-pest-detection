@@ -77,7 +77,7 @@ def run_dl_512() -> None:
         "--exp-names",
         "mobilenet_v2_512px",
         "--output",
-        "artifacts/grid_search_mobilenet_v2_512px_metrics.csv",
+        "artifacts/logs/resolution_exps/summary_metrics.csv",
     ]
     logger.info("Running metric aggregation...")
     result = subprocess.run(agg_cmd, env=env)

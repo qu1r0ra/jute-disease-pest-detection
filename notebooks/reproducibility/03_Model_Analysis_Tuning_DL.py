@@ -96,19 +96,24 @@ import seaborn as sns
 from jute_disease.utils import get_logger
 from jute_disease.utils.constants import (
     ARTIFACTS_DIR,
-    BATCH_SIZE,
+    DATA_DIR,
     DEFAULT_SEED,
     DPI,
     FIGURES_DL_DIR,
+    LOGS_DIR,
     ML_SPLIT_DIR,
     NUM_WORKERS,
 )
 
 logger = get_logger("AnalysisNoteBook")
 
-metrics_path = ARTIFACTS_DIR / "grid_search_mobilenet_v2_phase1_metrics.csv"
-res_512_01 = ARTIFACTS_DIR / "mobilenet_v2-512px-dr_0.1-metrics.csv"
-res_512_00 = ARTIFACTS_DIR / "mobilenet_v2-512px-dr_0.0-metrics.csv"
+metrics_path = LOGS_DIR / "phase1_transfer_grid" / "aggregated_grid_metrics.csv"
+res_512_01 = (
+    LOGS_DIR / "resolution_exps" / "mobilenet_v2-512px-dr_0.1" / "summary_metrics.csv"
+)
+res_512_00 = (
+    LOGS_DIR / "resolution_exps" / "mobilenet_v2-512px-dr_0.0" / "summary_metrics.csv"
+)
 
 if metrics_path.exists():
     df_phase1 = pd.read_csv(metrics_path)
@@ -191,7 +196,8 @@ if metrics_path.exists():
 # Now, let's look at the training dynamics of our champion model (256x256, 0.1 Dropout).
 
 # %%
-history_dir = ARTIFACTS_DIR / "logs" / "mobilenet_v2-l1_imagenet-dr_0.1"
+# 2. Load Training History for Curves
+history_dir = LOGS_DIR / "phase1_transfer_grid" / "mobilenet_v2-l1_imagenet-dr_0.1"
 history_files = list(history_dir.glob("version_*/metrics.csv"))
 
 if history_files:
@@ -582,7 +588,7 @@ if ckpt_paths:
 # However, to be scientifically rigorous, we must verify this. Is the model genuinely bottlenecked by the data, or was it simply under-trained due to a lack of epochs or killed prematurely by strict early stopping configurations?
 #
 # To answer this, we execute a final "Phase 2" grid search dedicated exclusively to fine-tuning the **Learning Rate** with significantly extended training bounds:
-# - **Iterating LRs**: `0.005`, `0.001`, `0.0005`, `0.0001`, `0.00005`
+# - **Iterating LRs**: `0.01`, `0.005`, `0.001`, `0.0005`, `0.0001`
 # - **Extended Capability**: `max_epochs` raised to 50.
 # - **Extended Patience**: `early_stopping_patience` raised to 20.
 #
