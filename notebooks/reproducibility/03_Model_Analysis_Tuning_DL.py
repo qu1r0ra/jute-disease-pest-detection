@@ -8,7 +8,8 @@
 #       format_version: '1.3'
 #       jupytext_version: 1.19.1
 #   kernelspec:
-#     display_name: Python 3
+#     display_name: .venv
+#     language: python
 #     name: python3
 # ---
 
@@ -16,7 +17,7 @@
 # <a href="https://colab.research.google.com/github/qu1r0ra/jute-disease-detection/blob/main/notebooks/reproducibility/03_Model_Analysis_Tuning_DL.ipynb" target="_parent"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
 
 # %% [markdown]
-# # Deep Learning Model Analysis and Fine-Tuning
+# # Deep Learning - Model Analysis and Fine-Tuning
 #
 # Continuing from our previous notebook, we will now conduct a detailed evaluation of our chosen MobileNet V2 champion model.
 #
