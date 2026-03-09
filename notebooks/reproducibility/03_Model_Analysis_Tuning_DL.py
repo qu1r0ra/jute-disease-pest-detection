@@ -189,7 +189,7 @@ ax_bar = sns.barplot(
     palette="viridis",
 )
 plt.ylim(0.8, 0.95)
-plt.title("Resolution Impact on MobileNet V2 Test Accuracy")
+plt.title("Impact of Resolution on Test Accuracy (MobileNetV2)")
 plt.xlabel("Dropout Rate")
 plt.ylabel("Test Accuracy")
 plt.grid(axis="y", linestyle="--", alpha=0.7)
@@ -253,14 +253,16 @@ fig, ax = plt.subplots(1, 2, figsize=(15, 5))
 
 loss_cols = [c for c in ["train_loss", "val_loss"] if c in epoch_data.columns]
 epoch_data[loss_cols].plot(ax=ax[0])
-ax[0].set_title("Training and Validation Loss")
+ax[0].set_title("Training and Validation Loss (MobileNetV2)")
 ax[0].set_xlabel("Epoch")
+ax[0].set_ylim(0, 1.2)
 ax[0].grid(True, alpha=0.3)
 
-avail_acc = [c for c in ["train_acc", "val_acc"] if c in epoch_data.columns]
-epoch_data[avail_acc].plot(ax=ax[1])
-ax[1].set_title("Training and Validation Accuracy")
+acc_cols = [c for c in ["train_acc", "val_acc"] if c in epoch_data.columns]
+epoch_data[acc_cols].plot(ax=ax[1])
+ax[1].set_title("Training and Validation Accuracy (MobileNetV2)")
 ax[1].set_xlabel("Epoch")
+ax[1].set_ylim(0.5, 1)
 ax[1].grid(True, alpha=0.3)
 
 plt.tight_layout()
@@ -268,15 +270,17 @@ plt.savefig(FIGURES_DL_DIR / "training_history.png", bbox_inches="tight", dpi=DP
 plt.show()
 
 # %% [markdown]
-# > continue here
-#
 # Some insights:
-# - ...
+# - Train loss appears to be consistently higher than validation loss.
+#   - This is possibly explained by how our data is heavily augmented during training but not during validation, making it more difficult for the model to get correct predictions on the training set per epoch.
+#   - Furthermore, due to dropout, some neurons are deactivated during training, making the task more difficult.
+# - Train accuracy appears to be consistently lower than validation accuracy. This is possibly explained by the same reason as above. Fortunately, the gap between the two appears to decrease over time, indicating that the model was able to generalize better over time.
+# - Regardless, it is worth inspecting how extending the training time will affect the training and validation metrics. We may have cut it too short by setting the early stopping patience low (originally 5). During fine-tuning, we will increase it to 20 to see whether the metrics will converge.
 
 # %% [markdown]
-# ## Error Analysis
+# ## Latent Space Analysis
 #
-# Let's perform a t-SNE and UMAP embedding analysis to visualize model separability, and then inspect the top confident errors.
+# Some interesting stuff ahead! Let's perform **t-SNE** and **UMAP** embedding analyses to visualize our data in lower dimensions, and inspect the top confident errors to determine whether the model struggles with specific classes.
 
 # %%
 import time
@@ -361,7 +365,9 @@ probs = torch.cat(all_probs).numpy()
 splits = np.array(all_splits)
 
 # %% [markdown]
-# ### Latent Space Embeddings (t-SNE and UMAP)
+# ### T-distributed Stochastic Neighbor Embedding (t-SNE)
+#
+# > brief description
 
 # %%
 tsne = TSNE(n_components=2, perplexity=30, random_state=DEFAULT_SEED)
@@ -416,6 +422,11 @@ plt.xlabel("t-SNE 1")
 plt.ylabel("t-SNE 2")
 plt.savefig(FIGURES_DL_DIR / "tsne.png", bbox_inches="tight", dpi=DPI)
 plt.show()
+
+# %% [markdown]
+# ### Uniform Manifold Approximation and Projection (UMAP)
+#
+# > brief description
 
 # %%
 reducer = umap.UMAP(
@@ -624,3 +635,10 @@ plt.show()
 # > continue here
 #
 # - Final words...
+
+# %% [markdown]
+# ## References
+#
+# [1] Coenen, A., & Pearce, A. (2019, December 5). _Understanding UMAP_. <https://pair-code.github.io/understanding-umap/>
+#
+# [2] Orucu, A. (2021, October 29). _Understanding t-SNE by implementation_. Towards Data Science. <https://towardsdatascience.com/understanding-t-sne-by-implementing-2baf3a987ab3/>
