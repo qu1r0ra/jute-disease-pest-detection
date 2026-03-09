@@ -306,9 +306,44 @@ plt.show()
 #
 # #### Confusion Matrix
 #
-# Now let's analyze 
-#
-# ![Part 1 CM](path/to/phase1_cm.png)
+# Let's verify where the model struggles by visualizing the confusion matrix logged by Weights & Biases.
+
+# %%
+import json
+
+cmat_path = (
+    LOGS_DIR
+    / "phase1_transfer_grid"
+    / "mobilenet_v2-l1_imagenet-dr_0.1"
+    / "conf_mat.json"
+)
+
+if cmat_path.exists():
+    with open(cmat_path) as f:
+        cmat_data = json.load(f)
+
+    df_cm = pd.DataFrame(cmat_data["data"], columns=cmat_data["columns"])
+    cm_pivot = df_cm.pivot(
+        index="Actual", columns="Predicted", values="nPredictions"
+    ).fillna(0)
+
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(cm_pivot, annot=True, fmt="g", cmap="Blues", cbar=False)
+    plt.title("Part 1: Confusion Matrix")
+    plt.ylabel("Actual Class")
+    plt.xlabel("Predicted Class")
+    plt.xticks(rotation=45, ha="right")
+    plt.yticks(rotation=0)
+
+    FIGURES_DL_DIR.mkdir(parents=True, exist_ok=True)
+    plt.savefig(
+        FIGURES_DL_DIR / "part1_confusion_matrix.png",
+        bbox_inches="tight",
+        dpi=DPI,
+    )
+    plt.show()
+else:
+    logger.warning(f"Confusion matrix not found at {cmat_path}")
 
 # %% [markdown]
 # #### Model Inference Setup
@@ -668,9 +703,73 @@ plt.show()
 
 # %% [markdown]
 # ### 2A. Model Performance
+
+# %% [markdown]
+# #### Learning Rate Tuning Performance
+#
+# Let's assess the performance metrics across all the learning rates we tested during our Part 2 Grid Search to empirically demonstrate which configuration was optimal for the MobileNet V2 model.
+
+# %%
+ft_metrics_path = LOGS_DIR / "phase2_finetune_grid" / "aggregated_grid_metrics.csv"
+
+if ft_metrics_path.exists():
+    df_ft = pd.read_csv(ft_metrics_path)
+
+    # Extract learning rates from Experiment names
+    def extract_lr(exp_name):
+        import re
+
+        match = re.search(r"lr_([0-9.]+)", exp_name)
+        return float(match.group(1)) if match else None
+
+    df_ft["Learning Rate"] = df_ft["Experiment"].apply(extract_lr)
+
+    # Sort backwards to see descending LR
+    df_ft = df_ft.sort_values("Learning Rate", ascending=False)
+
+    plt.figure(figsize=(10, 6))
+    ax = sns.barplot(data=df_ft, x="Learning Rate", y="test_acc", palette="Oranges_r")
+    plt.ylim(0.85, 0.95)
+    plt.title("Test Accuracy across Finetuning Learning Rates")
+    plt.xlabel("Learning Rate")
+    plt.ylabel("Test Accuracy")
+    plt.grid(axis="y", linestyle="--", alpha=0.7)
+
+    for p in ax.patches:
+        height = p.get_height()
+        if height > 0:
+            ax.annotate(
+                f"{height:.1%}",
+                (p.get_x() + p.get_width() / 2.0, height),
+                ha="center",
+                va="bottom",
+                fontsize=10,
+                xytext=(0, 4),
+                textcoords="offset points",
+            )
+
+    FIGURES_DL_DIR.mkdir(parents=True, exist_ok=True)
+    plt.savefig(
+        FIGURES_DL_DIR / "finetuned_lr_impact.png",
+        bbox_inches="tight",
+        dpi=DPI,
+    )
+    plt.show()
+
+    disp_cols = ["Learning Rate", "epoch", "test_acc", "test_f1", "test_loss"]
+    display(df_ft[disp_cols].reset_index(drop=True))
+else:
+    logger.warning(f"Metrics file not found at {ft_metrics_path}")
+
+# %% [markdown]
+# Some insights:
+# - As we decrease the learning rate to extremely small values (e.g., `0.0001`), performance degrades and loss increases.
+# - A higher learning rate of `0.01` with an `0.05` weight decay yields the maximum test accuracy achievable.
+# - The highest accuracy metric caps closely around ~91.4%, which perfectly aligns with our "Data-Level Ceiling" hypothesis.
+#
+# Let's inspect the training curve of the champion fine-tuned configuration (`LR=0.01`).
 #
 # #### Part 2 Training Curves
-# Let's inspect the training curve of the champion fine-tuned configuration.
 
 # %%
 finetuned_history_dir = (
@@ -724,11 +823,55 @@ if ft_history_files:
 #
 # #### Confusion Matrix Comparison
 #
-# > Replace the placeholders below with the confusion matrices downloaded from Weights & Biases.
-#
-# | Part 1 Baseline (ImageNet L1) | Part 2 Finetuned (LR=0.01) |
-# | :---: | :---: |
-# | ![Part 1 CM](path/to/phase1_cm.png) | ![Part 2 CM](path/to/phase2_cm.png) |
+# Let's see how our finely tuned model's confusion matrix stacks up against the baseline. 
+
+# %%
+import json
+
+ft_cmat_path = (
+    LOGS_DIR
+    / "phase2_finetune_grid"
+    / "mobilenet_v2-l1_imagenet-lr_0.01-wd_0.05"
+    / "conf_mat.json"
+)
+
+if ft_cmat_path.exists() and cmat_path.exists():
+    with open(ft_cmat_path) as f:
+        ft_cmat_data = json.load(f)
+
+    df_ft_cm = pd.DataFrame(ft_cmat_data["data"], columns=ft_cmat_data["columns"])
+    ft_cm_pivot = df_ft_cm.pivot(
+        index="Actual", columns="Predicted", values="nPredictions"
+    ).fillna(0)
+
+    fig, axes = plt.subplots(1, 2, figsize=(18, 8))
+
+    sns.heatmap(cm_pivot, annot=True, fmt="g", cmap="Blues", cbar=False, ax=axes[0])
+    axes[0].set_title("Part 1: Baseline Confusion Matrix")
+    axes[0].set_ylabel("Actual Class")
+    axes[0].set_xlabel("Predicted Class")
+    axes[0].tick_params(axis="x", rotation=45)
+
+    sns.heatmap(
+        ft_cm_pivot, annot=True, fmt="g", cmap="Oranges", cbar=False, ax=axes[1]
+    )
+    axes[1].set_title("Part 2: Finetuned Confusion Matrix (LR=0.01)")
+    axes[1].set_ylabel("Actual Class")
+    axes[1].set_xlabel("Predicted Class")
+    axes[1].tick_params(axis="x", rotation=45)
+
+    FIGURES_DL_DIR.mkdir(parents=True, exist_ok=True)
+    plt.savefig(
+        FIGURES_DL_DIR / "part2_confusion_matrix_comparison.png",
+        bbox_inches="tight",
+        dpi=DPI,
+    )
+    plt.show()
+else:
+    logger.warning("One or both of the confusion matrices are missing.")
+
+# %% [markdown]
+# > continue here
 #
 # Some insights:
 # - ...
