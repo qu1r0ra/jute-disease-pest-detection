@@ -15,8 +15,7 @@ An exploration of deep learning on merged jute leaf disease datasets. Created fo
 - [2. Project Structure](#2-project-structure)
 - [3. Running the Project](#3-running-the-project)
   - [3.1. Prerequisites](#31-prerequisites)
-  - [3.2. CLI Entry Points](#32-cli-entry-points)
-  - [3.3. Reproducing the Results](#33-reproducing-the-results)
+  - [3.2. Reproducing the Results](#32-reproducing-the-results)
 - [4. References](#4-references)
 
 ## 1. Introduction
@@ -63,29 +62,7 @@ To reproduce our results, you will need the following installed:
 
 3. **uv:** The package manager we used. Installation instructions can be found at <https://docs.astral.sh/uv/getting-started/installation/>.
 
-### 3.2. CLI Entry Points
-
-This project provides unified CLI entry points for common tasks:
-
-- **`scripts/train_dl.py`**: Entry point for the Deep Learning engine (Lightning CLI).
-
-  ```bash
-  uv run python scripts/train_dl.py fit --config configs/baselines/mobilenet_v2.yaml
-  ```
-
-- **`make train-ml`**: Entry point for the Machine Learning engine sweep. Or run manually via `uv run python scripts/train_ml.py`.
-
-  ```bash
-  uv run python scripts/train_ml.py --classifier rf --feature_type crafted
-  ```
-
-- **`make train-dl-512`**: Specialized target to execute a high-resolution (512x512) experiment track, including test evaluation and automated metrics aggregation.
-
-- **`make grid-search`**: Executes Phase 1 (Transfer Learning / Dropout) grid searches. (Append `-check` for a fast dev-run).
-
-- **`scripts/aggregate_results.py`**: Utility to consolidate metrics from multiple CSVLogger outputs into a single analysis-ready CSV.
-
-### 3.3. Reproducing the Results
+### 3.2. Reproducing the Results
 
 1. Clone this repository:
 
@@ -108,7 +85,7 @@ This project provides unified CLI entry points for common tasks:
 
    _Notes_
    - When running a notebook, select `.venv` in root as the kernel.
-   - More instructions can be found in each notebook.
+   - Follow the instructions found in each notebook.
 
 ## 4. References
 
