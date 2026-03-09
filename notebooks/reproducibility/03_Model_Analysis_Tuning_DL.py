@@ -56,7 +56,7 @@ from jute_disease.utils.seed import seed_everything
 seed_everything(DEFAULT_SEED)
 
 # %% [markdown]
-# Before proceeding,
+# If you haven't done yet from the previous notebook,
 #
 # 1. Download `data.zip` from <https://drive.google.com/drive/folders/1WoQ-Xzy0Prl9lInHW5JpGX4tpE9YDUua?usp=sharing> and upload it to your Google Colab account's Google Drive. You can simply upload it to the root of _My Drive_ for simplicity, but we recommend creating a separate folder for organization.
 # 2. Update `DATA_ZIP_PATH` below to the path where you stored the file. If you uploaded it to the root of _My Drive_, you can set it to **"/content/drive/MyDrive/data.zip"**.
