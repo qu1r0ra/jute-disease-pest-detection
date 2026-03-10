@@ -398,7 +398,7 @@ cm_pivot = df_cm.pivot(
 
 plt.figure(figsize=(10, 8))
 sns.heatmap(cm_pivot, annot=True, fmt="g", cmap="Blues", cbar=False)
-plt.title("Baseline Confusion Matrix (MobileNet V2 with DR 0.1)")
+plt.title("Confusion Matrix (MobileNet V2 with DR 0.1)")
 plt.ylabel("Actual Class")
 plt.xlabel("Predicted Class")
 plt.xticks(rotation=45, ha="right")
@@ -511,10 +511,6 @@ preds = torch.cat(all_preds).numpy()
 targets = torch.cat(all_targets).numpy()
 probs = torch.cat(all_probs).numpy()
 splits = np.array(all_splits)
-
-# %% [markdown]
-# Some additional insights:
-# - Running this on a _ThinkPad T480_ with an _Intel Core i7-8550U_ processor (up to 4.00 GHz) achieved a mean inference time of 96.95 ms per image.
 
 # %% [markdown]
 # #### Top Confident Errors
@@ -787,8 +783,7 @@ for class_idx in range(num_classes):
     plot_idx += num_samples - n
 
 plt.suptitle(
-    "Baseline Grad-CAM Heatmaps on Sample Jute Leaf Disease Images\n"
-    "(MobileNet V2 with DR 0.1)",
+    "Grad-CAM Heatmaps on Sample Jute Leaf Disease Images\n(MobileNet V2 with DR 0.1)",
     fontsize=20,
     y=1.02,
 )
@@ -819,6 +814,8 @@ plt.show()
 # Thus, we will execute a second grid search with the ff. configurations:
 # - **Learning Rate**: `0.01`, `0.005`, `0.001`, `0.0005`, `0.0001`
 # - **Extended Patience**: `early_stopping_patience` raised to 20.
+#
+# Our results can be found [here](https://wandb.ai/grade-descent/jute-disease-detection/groups/MobileNet%20V2%20Finetune%20Grid/workspace).
 
 # %%
 # !uv run python scripts/run_grid_search.py \
@@ -987,15 +984,13 @@ ft_cm_pivot = df_ft_cm.pivot(
 fig, axes = plt.subplots(1, 2, figsize=(18, 8))
 
 sns.heatmap(cm_pivot, annot=True, fmt="g", cmap="Blues", cbar=False, ax=axes[0])
-axes[0].set_title("Baseline Confusion Matrix (MobileNet V2 with DR 0.1)")
+axes[0].set_title("Confusion Matrix (MobileNet V2 with DR 0.1)")
 axes[0].set_ylabel("Actual Class")
 axes[0].set_xlabel("Predicted Class")
 axes[0].tick_params(axis="x", rotation=45)
 
 sns.heatmap(ft_cm_pivot, annot=True, fmt="g", cmap="Oranges", cbar=False, ax=axes[1])
-axes[1].set_title(
-    "Finetuned Confusion Matrix (MobileNet V2 with DR 0.1, LR 0.01)"
-)
+axes[1].set_title("Confusion Matrix (MobileNet V2 with DR 0.1, LR 0.01)")
 axes[1].set_ylabel("Actual Class")
 axes[1].set_xlabel("Predicted Class")
 axes[1].tick_params(axis="x", rotation=45)
@@ -1202,7 +1197,7 @@ for class_idx in range(num_classes):
     plot_idx += num_samples - n
 
 plt.suptitle(
-    "Finetuned Grad-CAM Heatmaps on Sample Jute Leaf Disease Images\n"
+    "Grad-CAM Heatmaps on Sample Jute Leaf Disease Images\n"
     "(MobileNet V2 with DR 0.1, LR 0.01)",
     fontsize=20,
     y=1.02,
@@ -1217,7 +1212,7 @@ plt.show()
 # %% [markdown]
 # ## Conclusion
 #
-# > continue here
+# Through our analyses, we have shown that while fine-tuning the learning rate to $0.01$ can slightly improve accuracy, the model reaches a performance plateau due to major problems such as focusing on irrelevant details (e.g., background, other visual features) and failing to distinguish between _Cercospora Leaf Spot_ and _Mosaic_ diseases due to visual similarities. Future work can consider improving the data preprocessing pipeline or exploring multi-label classification or object detection to consider cases where a jute leaf may exhibit multiple diseases or multiple jute leaves are present in a single image.
 
 # %% [markdown]
 # ## References
