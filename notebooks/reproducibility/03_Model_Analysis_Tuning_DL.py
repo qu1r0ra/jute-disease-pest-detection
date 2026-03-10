@@ -657,6 +657,14 @@ plt.savefig(FIGURES_DL_DIR / "tsne.png", bbox_inches="tight", dpi=DPI)
 plt.show()
 
 # %% [markdown]
+# Some insights:
+# - There are some well-clustered classes such as _General Damage_, _Stem Rot_, _Dieback_. _Healthy_ is also pretty well-clustered, but has three distinct clusters. These are the same classes that the model was able to distinguish significantly well with accuracies above 95%, thus explaining its performance.
+# - There is a lone cluster of healthy images at the top right, isolated from other points. These may possibly be the images of healthy jute leaves taken with a clean background.
+#   - As we saw from EDA, most of our jute leaf datasets had images collected from farms, but we also included a dataset which had images of healthy jute leaves taken on top of a table.
+# - There's an area where _Cercospora Leaf Spot_ and _Mosaic_ latent features are mixed. This is possibly a consequence of the model focusing too much on leaf spots.
+#   - Moreover, there are two clear _Mosaic_ clusters below it, which may possibly be _Mosaic_ examples without spots or other ambiguities. We hypothesize that the _Mosaic_ examples mixed with the _Cercospora Leaf Spot_ examples are those that have been confused as the latter due to the extracted features.
+
+# %% [markdown]
 # ### Uniform Manifold Approximation and Projection (UMAP)
 #
 # For UMAP, we went with `n_neighbors=15` and `min_dist=0.1` (recommended defaults by `umap-learn`). `n_neighbors` controls how UMAP balances local versus global structure (similar to perplexity), while `min_dist` determines how tightly UMAP is allowed to pack points together.
@@ -705,10 +713,13 @@ plt.savefig(FIGURES_DL_DIR / "umap.png", bbox_inches="tight", dpi=DPI)
 plt.show()
 
 # %% [markdown]
-# > continue here
-#
 # Some insights:
-# - ...
+# - There are three clearly isolated latent space 'islands.'
+#   - The top-left consists of all classes except _Cercospora Leaf Spot_.
+#   - The top-right consists solely of _Healthy_ samples.
+#   - The bottom-left consists of _Healthy_, _Cercospora Leaf Spot_, and _Mosaic_ samples.
+# - Similar to t-SNE, we can see a somewhat distinct clustering for _Dieback_, _General Damage_, _Stem Rot_, and _Healthy_.
+# - Yet again, we see 3 different clusters for _Healthy_, with an isolated one at the top-right. We also see the mixture of _Cercospora Leaf Spot_ and _Mosaic_ latent space features at the bottom-left island.
 
 # %% [markdown]
 # ### 1D. Interpretability
