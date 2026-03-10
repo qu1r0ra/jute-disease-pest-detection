@@ -42,7 +42,7 @@
 #   - [1B. Error Analysis](#1b-error-analysis)
 #   - [1C. Latent Space Analysis](#1c-latent-space-analysis)
 #   - [1D. Interpretability](#1d-interpretability)
-# - [Part 2: Optimizer Fine-Tuning](#part-2-optimizer-fine-tuning)
+# - [Part 2: Fine-Tuning](#part-2-fine-tuning)
 #   - [2A. Model Performance](#2a-model-performance)
 #   - [2B. Error Analysis](#2b-error-analysis)
 #   - [2C. Interpretability](#2c-interpretability)
@@ -724,7 +724,7 @@ plt.show()
 # %% [markdown]
 # ### 1D. Interpretability
 #
-# We use Grad-CAM to visualize where the model focuses its attention when making predictions.
+# We now use Grad-CAM to visualize where on the jute leaf images the model focuses on when making predictions.
 
 # %%
 from captum.attr import LayerGradCam
@@ -733,7 +733,7 @@ from scipy.ndimage import zoom
 target_layer = model.feature_extractor.backbone.conv_head
 lgc = LayerGradCam(model, target_layer)
 
-num_samples = 5
+num_samples = 10
 num_classes = len(dm.classes)
 plt.figure(figsize=(20, 4 * num_classes))
 np.random.seed(DEFAULT_SEED)
@@ -785,13 +785,24 @@ plt.savefig(FIGURES_DL_DIR / "grad_cam.png", bbox_inches="tight", dpi=DPI)
 plt.show()
 
 # %% [markdown]
-# > continue here
-#
 # Some insights:
-# - ...
+# - The model appears to have lower confidence for _Cercospora Leaf Spot_ and _Mosaic_ images, likely due to its possible confusion between the two.
+# - For _Cercospora Leaf Spot_ and _Mosaic_, the model is generally able to focus on leaf spots.
+#   - However, in some images taken from the wild, the model focused on the background instead of the jute leaf disease in question. The 8th and 10th _Cercospora Leaf Spot_ images illustrate this.
+# - The model is generally able to focus on curled leaves for _Dieback_, which is intended.
+# - The model is generally able to focus on holes and tears for _General Damage_, which is intended.
+#   - However, in some images taken from the wild, it appears to focus on features beyond the jute leaf in question. The 5th and 7th images illustrate this.
+#   - This supports our general suggestion of preprocessing the image background in some way.
+# - The model appears to classify _Healthy_ images pretty well, but some for the wrong reasons.
+#   - Concerningly, for the 5 images taken on top of a table, the model appeared to focus on the background. This is indicative of the model learning the background instead of the features of a _Healthy_ jute leaf.
+#   - This further supports our general suggestion of preprocessing the image background in some way.
+# - Finally, the model is generally able to focus on relevant features for _Mosaic_ and _Stem Rot_.
+#   - Three Mosaic images show the model focusing on the background instead of the jute leaf in question.
 
 # %% [markdown]
-# ## Part 2: Optimizer Fine-Tuning (Empirical Verification)
+# ## Part 2: Fine-Tuning
+#
+# > continue
 #
 # Our analysis above (specifically regarding the multi-label ambiguity in our dataset) led us to form a strong hypothesis: the performance ceiling we are experiencing (~90% test accuracy) is a "Data-Level Ceiling" caused by overlapping symptoms, not an architectural capacity issue.
 #
