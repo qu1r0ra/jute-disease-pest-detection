@@ -802,17 +802,11 @@ plt.show()
 # %% [markdown]
 # ## Part 2: Fine-Tuning
 #
-# > continue
+# Our analysis above leads to the hypothesis that the problem is primarily in the preprocessing of the data rather than the architecture (though we can still modify the architecture and expect improvements). We want to determine whether our model is indeed bottle-necked by the data preprocessing or simply lacked training, as our early stopping was originally set to 5.
 #
-# Our analysis above (specifically regarding the multi-label ambiguity in our dataset) led us to form a strong hypothesis: the performance ceiling we are experiencing (~90% test accuracy) is a "Data-Level Ceiling" caused by overlapping symptoms, not an architectural capacity issue.
-#
-# However, to be scientifically rigorous, we must verify this. Is the model genuinely bottlenecked by the data, or was it simply under-trained due to a lack of epochs or killed prematurely by strict early stopping configurations?
-#
-# To answer this, we execute a final "Part 2" grid search dedicated exclusively to fine-tuning the **Learning Rate** with significantly extended training bounds:
-# - **Iterating LRs**: `0.01`, `0.005`, `0.001`, `0.0005`, `0.0001`
+# Thus, we will execute a second grid search with the ff. configurations:
+# - **Learning Rate**: `0.01`, `0.005`, `0.001`, `0.0005`, `0.0001`
 # - **Extended Patience**: `early_stopping_patience` raised to 20.
-#
-# If the model still caps at similar performance levels despite exhaustive optimizer iterations and extended time arrays, our data-ceiling hypothesis stands.
 
 # %%
 # !uv run python scripts/run_grid_search.py \
@@ -830,54 +824,58 @@ plt.show()
 # %%
 ft_metrics_path = LOGS_DIR / "phase2_finetune_grid" / "aggregated_grid_metrics.csv"
 
-if ft_metrics_path.exists():
-    df_ft = pd.read_csv(ft_metrics_path)
-
-    # Extract learning rates from Experiment names
-    def extract_lr(exp_name):
-        import re
-
-        match = re.search(r"lr_([0-9.]+)", exp_name)
-        return float(match.group(1)) if match else None
-
-    df_ft["Learning Rate"] = df_ft["Experiment"].apply(extract_lr)
-
-    # Sort backwards to see descending LR
-    df_ft = df_ft.sort_values("Learning Rate", ascending=False)
-
-    plt.figure(figsize=(10, 6))
-    ax = sns.barplot(data=df_ft, x="Learning Rate", y="test_acc", palette="Oranges_r")
-    plt.ylim(0.85, 0.95)
-    plt.title("Test Accuracy across Finetuning Learning Rates")
-    plt.xlabel("Learning Rate")
-    plt.ylabel("Test Accuracy")
-    plt.grid(axis="y", linestyle="--", alpha=0.7)
-
-    for p in ax.patches:
-        height = p.get_height()
-        if height > 0:
-            ax.annotate(
-                f"{height:.1%}",
-                (p.get_x() + p.get_width() / 2.0, height),
-                ha="center",
-                va="bottom",
-                fontsize=10,
-                xytext=(0, 4),
-                textcoords="offset points",
-            )
-
-    FIGURES_DL_DIR.mkdir(parents=True, exist_ok=True)
-    plt.savefig(
-        FIGURES_DL_DIR / "finetuned_lr_impact.png",
-        bbox_inches="tight",
-        dpi=DPI,
+if not ft_metrics_path.exists():
+    raise FileNotFoundError(
+        f"Metrics file not found at {ft_metrics_path}"
     )
-    plt.show()
 
-    disp_cols = ["Learning Rate", "epoch", "test_acc", "test_f1", "test_loss"]
-    display(df_ft[disp_cols].reset_index(drop=True))
-else:
-    logger.warning(f"Metrics file not found at {ft_metrics_path}")
+df_ft = pd.read_csv(ft_metrics_path)
+
+
+# Extract learning rates from Experiment names
+def extract_lr(exp_name):
+    import re
+
+    match = re.search(r"lr_([0-9.]+)", exp_name)
+    return float(match.group(1)) if match else None
+
+
+df_ft["Learning Rate"] = df_ft["Experiment"].apply(extract_lr)
+
+# Sort backwards to see descending LR
+df_ft = df_ft.sort_values("Learning Rate", ascending=False)
+
+plt.figure(figsize=(10, 6))
+ax = sns.barplot(data=df_ft, x="Learning Rate", y="test_acc", palette="Oranges_r")
+plt.ylim(0.85, 0.95)
+plt.title("Test Accuracy across Finetuning Learning Rates")
+plt.xlabel("Learning Rate")
+plt.ylabel("Test Accuracy")
+plt.grid(axis="y", linestyle="--", alpha=0.7)
+
+for p in ax.patches:
+    height = p.get_height()
+    if height > 0:
+        ax.annotate(
+            f"{height:.1%}",
+            (p.get_x() + p.get_width() / 2.0, height),
+            ha="center",
+            va="bottom",
+            fontsize=10,
+            xytext=(0, 4),
+            textcoords="offset points",
+        )
+
+FIGURES_DL_DIR.mkdir(parents=True, exist_ok=True)
+plt.savefig(
+    FIGURES_DL_DIR / "finetuned_lr_impact.png",
+    bbox_inches="tight",
+    dpi=DPI,
+)
+plt.show()
+
+disp_cols = ["Learning Rate", "epoch", "test_acc", "test_f1", "test_loss"]
+display(df_ft[disp_cols].reset_index(drop=True))
 
 # %% [markdown]
 # Some insights:
@@ -895,46 +893,50 @@ finetuned_history_dir = (
 )
 ft_history_files = list(finetuned_history_dir.glob("*-metrics.csv"))
 
-if ft_history_files:
-    dfs = [pd.read_csv(f) for f in ft_history_files]
-    history = pd.concat(dfs, ignore_index=True)
-    agg_dict = {}
-    for col in history.columns:
-        if "loss" in col:
-            agg_dict[col] = "mean"
-        elif "acc" in col or "f1" in col:
-            agg_dict[col] = "max"
-
-    epoch_data = (
-        history.groupby("epoch")
-        .agg(agg_dict)
-        .dropna(
-            subset=[
-                "train_loss",
-                "val_loss" if "val_loss" in history.columns else "train_loss",
-            ]
-        )
+if not ft_history_files:
+    raise FileNotFoundError(
+        f"History files not found in {finetuned_history_dir}"
     )
 
-    fig, ax = plt.subplots(1, 2, figsize=(15, 5))
+dfs = [pd.read_csv(f) for f in ft_history_files]
+history = pd.concat(dfs, ignore_index=True)
+agg_dict = {}
+for col in history.columns:
+    if "loss" in col:
+        agg_dict[col] = "mean"
+    elif "acc" in col or "f1" in col:
+        agg_dict[col] = "max"
 
-    loss_cols = [c for c in ["train_loss", "val_loss"] if c in epoch_data.columns]
-    epoch_data[loss_cols].plot(ax=ax[0])
-    ax[0].set_title("Training and Validation Loss (Finetuned)")
-    ax[0].set_xlabel("Epoch")
-    ax[0].grid(True, alpha=0.3)
-
-    avail_acc = [c for c in ["train_acc", "val_acc"] if c in epoch_data.columns]
-    epoch_data[avail_acc].plot(ax=ax[1])
-    ax[1].set_title("Training and Validation Accuracy (Finetuned)")
-    ax[1].set_xlabel("Epoch")
-    ax[1].grid(True, alpha=0.3)
-
-    plt.tight_layout()
-    plt.savefig(
-        FIGURES_DL_DIR / "finetuned_training_history.png", bbox_inches="tight", dpi=DPI
+epoch_data = (
+    history.groupby("epoch")
+    .agg(agg_dict)
+    .dropna(
+        subset=[
+            "train_loss",
+            "val_loss" if "val_loss" in history.columns else "train_loss",
+        ]
     )
-    plt.show()
+)
+
+fig, ax = plt.subplots(1, 2, figsize=(15, 5))
+
+loss_cols = [c for c in ["train_loss", "val_loss"] if c in epoch_data.columns]
+epoch_data[loss_cols].plot(ax=ax[0])
+ax[0].set_title("Training and Validation Loss (Finetuned)")
+ax[0].set_xlabel("Epoch")
+ax[0].grid(True, alpha=0.3)
+
+avail_acc = [c for c in ["train_acc", "val_acc"] if c in epoch_data.columns]
+epoch_data[avail_acc].plot(ax=ax[1])
+ax[1].set_title("Training and Validation Accuracy (Finetuned)")
+ax[1].set_xlabel("Epoch")
+ax[1].grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.savefig(
+    FIGURES_DL_DIR / "finetuned_training_history.png", bbox_inches="tight", dpi=DPI
+)
+plt.show()
 
 # %% [markdown]
 # ### 2B. Error Analysis
@@ -953,44 +955,46 @@ ft_cmat_path = (
     / "conf_mat.json"
 )
 
-if ft_cmat_path.exists() and cmat_path.exists():
-    with open(ft_cmat_path) as f:
-        ft_cmat_data = json.load(f)
-
-    df_ft_cm = pd.DataFrame(ft_cmat_data["data"], columns=ft_cmat_data["columns"])
-    ft_cm_pivot = df_ft_cm.pivot(
-        index="Actual", columns="Predicted", values="nPredictions"
-    ).fillna(0)
-
-    fig, axes = plt.subplots(1, 2, figsize=(18, 8))
-
-    sns.heatmap(cm_pivot, annot=True, fmt="g", cmap="Blues", cbar=False, ax=axes[0])
-    axes[0].set_title("Part 1: Baseline Confusion Matrix")
-    axes[0].set_ylabel("Actual Class")
-    axes[0].set_xlabel("Predicted Class")
-    axes[0].tick_params(axis="x", rotation=45)
-
-    sns.heatmap(
-        ft_cm_pivot, annot=True, fmt="g", cmap="Oranges", cbar=False, ax=axes[1]
+if not ft_cmat_path.exists():
+    raise FileNotFoundError(
+        f"Finetuned confusion matrix not found at {ft_cmat_path}"
     )
-    axes[1].set_title("Part 2: Finetuned Confusion Matrix (LR=0.01)")
-    axes[1].set_ylabel("Actual Class")
-    axes[1].set_xlabel("Predicted Class")
-    axes[1].tick_params(axis="x", rotation=45)
+if not cmat_path.exists():
+    raise FileNotFoundError(f"Baseline confusion matrix not found at {cmat_path}")
 
-    FIGURES_DL_DIR.mkdir(parents=True, exist_ok=True)
-    plt.savefig(
-        FIGURES_DL_DIR / "part2_confusion_matrix_comparison.png",
-        bbox_inches="tight",
-        dpi=DPI,
-    )
-    plt.show()
+with open(ft_cmat_path) as f:
+    ft_cmat_data = json.load(f)
 
-    print("Part 2: Finetuned Classification Metrics by Class")
-    df_ft_metrics = get_cm_metrics(ft_cm_pivot)
-    display(df_ft_metrics.round(4))
-else:
-    logger.warning("One or both of the confusion matrices are missing.")
+df_ft_cm = pd.DataFrame(ft_cmat_data["data"], columns=ft_cmat_data["columns"])
+ft_cm_pivot = df_ft_cm.pivot(
+    index="Actual", columns="Predicted", values="nPredictions"
+).fillna(0)
+
+fig, axes = plt.subplots(1, 2, figsize=(18, 8))
+
+sns.heatmap(cm_pivot, annot=True, fmt="g", cmap="Blues", cbar=False, ax=axes[0])
+axes[0].set_title("Part 1: Baseline Confusion Matrix")
+axes[0].set_ylabel("Actual Class")
+axes[0].set_xlabel("Predicted Class")
+axes[0].tick_params(axis="x", rotation=45)
+
+sns.heatmap(ft_cm_pivot, annot=True, fmt="g", cmap="Oranges", cbar=False, ax=axes[1])
+axes[1].set_title("Part 2: Finetuned Confusion Matrix (LR=0.01)")
+axes[1].set_ylabel("Actual Class")
+axes[1].set_xlabel("Predicted Class")
+axes[1].tick_params(axis="x", rotation=45)
+
+FIGURES_DL_DIR.mkdir(parents=True, exist_ok=True)
+plt.savefig(
+    FIGURES_DL_DIR / "part2_confusion_matrix_comparison.png",
+    bbox_inches="tight",
+    dpi=DPI,
+)
+plt.show()
+
+print("Part 2: Finetuned Classification Metrics by Class")
+df_ft_metrics = get_cm_metrics(ft_cm_pivot)
+display(df_ft_metrics.round(4))
 
 # %% [markdown]
 # > continue here
@@ -1008,123 +1012,125 @@ finetuned_dir = (
 )
 ft_ckpt_paths = list(finetuned_dir.glob("*.ckpt"))
 
-if ft_ckpt_paths:
-    ft_ckpt_path = ft_ckpt_paths[0]
-    backbone = TimmBackbone(model_name="mobilenetv2_100")
-    ft_model = Classifier.load_from_checkpoint(ft_ckpt_path, feature_extractor=backbone)
-    ft_model.eval()
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    ft_model.to(device)
+if not ft_ckpt_paths:
+    raise FileNotFoundError(
+        f"Checkpoint not found for finetuned champion: {finetuned_dir}"
+    )
 
-    all_features = []
-    all_preds = []
-    all_targets = []
-    all_probs = []
-    all_splits = []
-    start_time = time.time()
+ft_ckpt_path = ft_ckpt_paths[0]
+backbone = TimmBackbone(model_name="mobilenetv2_100")
+ft_model = Classifier.load_from_checkpoint(ft_ckpt_path, feature_extractor=backbone)
+ft_model.eval()
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+ft_model.to(device)
 
-    loaders = [
-        ("Train", clean_train_loader),
-        ("Val", val_loader),
-        ("Test", test_loader),
-    ]
+all_features = []
+all_preds = []
+all_targets = []
+all_probs = []
+all_splits = []
+start_time = time.time()
 
-    with torch.no_grad():
-        for split_name, loader in loaders:
-            for x, y in loader:
-                x = x.to(device)
-                feat = ft_model.feature_extractor(x)
-                logits = ft_model.classifier(feat)
-                probs = F.softmax(logits, dim=1)
+loaders = [
+    ("Train", clean_train_loader),
+    ("Val", val_loader),
+    ("Test", test_loader),
+]
 
-                all_features.append(feat.cpu())
-                all_probs.append(probs.cpu())
-                all_preds.append(logits.argmax(dim=1).cpu())
-                all_targets.append(y)
-                all_splits.extend([split_name] * x.size(0))
+with torch.no_grad():
+    for split_name, loader in loaders:
+        for x, y in loader:
+            x = x.to(device)
+            feat = ft_model.feature_extractor(x)
+            logits = ft_model.classifier(feat)
+            probs = F.softmax(logits, dim=1)
 
-    end_time = time.time()
-    total_imgs = len(pooled_dataset)
-    inf_time_ms = (end_time - start_time) / total_imgs * 1000
-    logger.info(f"[Finetuned] Inference time per image: {inf_time_ms:.2f} ms")
+            all_features.append(feat.cpu())
+            all_probs.append(probs.cpu())
+            all_preds.append(logits.argmax(dim=1).cpu())
+            all_targets.append(y)
+            all_splits.extend([split_name] * x.size(0))
 
-    ft_features = torch.cat(all_features).numpy()
-    ft_preds = torch.cat(all_preds).numpy()
-    ft_targets = torch.cat(all_targets).numpy()
-    ft_probs = torch.cat(all_probs).numpy()
-    ft_splits = np.array(all_splits)
+end_time = time.time()
+total_imgs = len(pooled_dataset)
+inf_time_ms = (end_time - start_time) / total_imgs * 1000
+logger.info(f"[Finetuned] Inference time per image: {inf_time_ms:.2f} ms")
+
+ft_features = torch.cat(all_features).numpy()
+ft_preds = torch.cat(all_preds).numpy()
+ft_targets = torch.cat(all_targets).numpy()
+ft_probs = torch.cat(all_probs).numpy()
+ft_splits = np.array(all_splits)
 
 # %% [markdown]
 # #### Finetuned Top Confident Errors
 
 # %%
-if ft_ckpt_paths:
-    TOP_K = 10
-    is_wrong = ft_preds != ft_targets
-    wrong_indices = np.where(is_wrong)[0]
+TOP_K = 10
+is_wrong = ft_preds != ft_targets
+wrong_indices = np.where(is_wrong)[0]
 
-    if len(wrong_indices) > 0:
-        wrong_probs = [ft_probs[i, ft_preds[i]] for i in wrong_indices]
-        n_display = min(TOP_K, len(wrong_indices))
-        sorted_wrong = np.argsort(wrong_probs)[::-1][:n_display]
-        top_wrong_idx = wrong_indices[sorted_wrong]
+if len(wrong_indices) > 0:
+    wrong_probs = [ft_probs[i, ft_preds[i]] for i in wrong_indices]
+    n_display = min(TOP_K, len(wrong_indices))
+    sorted_wrong = np.argsort(wrong_probs)[::-1][:n_display]
+    top_wrong_idx = wrong_indices[sorted_wrong]
 
-        ncols = 5
-        nrows = int(np.ceil(n_display / ncols))
-        plt.figure(figsize=(20, 5 * nrows))
-        for i, idx in enumerate(top_wrong_idx):
-            img, label = pooled_dataset[idx]
-            img_disp = img.permute(1, 2, 0).numpy()
-            img_disp = (
-                img_disp * np.array([0.229, 0.224, 0.225])
-                + np.array([0.485, 0.456, 0.406])
-            ).clip(0, 1)
+    ncols = 5
+    nrows = int(np.ceil(n_display / ncols))
+    plt.figure(figsize=(20, 5 * nrows))
+    for i, idx in enumerate(top_wrong_idx):
+        img, label = pooled_dataset[idx]
+        img_disp = img.permute(1, 2, 0).numpy()
+        img_disp = (
+            img_disp * np.array([0.229, 0.224, 0.225]) + np.array([0.485, 0.456, 0.406])
+        ).clip(0, 1)
 
-            plt.subplot(nrows, ncols, i + 1)
-            plt.imshow(img_disp)
-            ax_sub = plt.gca()
-            plt.title("")
-            ax_sub.text(
-                0.5,
-                1.12,
-                f"Pred: {dm.classes[ft_preds[idx]]} "
-                f"({ft_probs[idx, ft_preds[idx]]:.2f})",
-                color="red",
-                fontsize=10,
-                ha="center",
-                transform=ax_sub.transAxes,
-            )
-            ax_sub.text(
-                0.5,
-                1.02,
-                f"Actual: {dm.classes[ft_targets[idx]]}",
-                color="black",
-                fontsize=10,
-                ha="center",
-                transform=ax_sub.transAxes,
-            )
-            plt.axis("off")
-
-        plt.suptitle(
-            f"Finetuned Top {n_display} Most Confident Incorrect Predictions",
-            fontsize=16,
-        )
-        plt.figtext(
+        plt.subplot(nrows, ncols, i + 1)
+        plt.imshow(img_disp)
+        ax_sub = plt.gca()
+        plt.title("")
+        ax_sub.text(
             0.5,
-            0.92,
-            "(Note: The number in parenthesis is the prediction confidence)",
+            1.12,
+            f"Pred: {dm.classes[ft_preds[idx]]}\n"
+            f"({ft_probs[idx, ft_preds[idx]]:.2f})",
+            color="red",
+            fontsize=10,
             ha="center",
-            fontsize=12,
-            color="gray",
+            transform=ax_sub.transAxes,
         )
-        plt.savefig(
-            FIGURES_DL_DIR / f"finetuned_top_{n_display}_errors.png",
-            bbox_inches="tight",
-            dpi=DPI,
+        ax_sub.text(
+            0.5,
+            1.02,
+            f"Actual: {dm.classes[ft_targets[idx]]}",
+            color="black",
+            fontsize=10,
+            ha="center",
+            transform=ax_sub.transAxes,
         )
-        plt.show()
-    else:
-        logger.info("[Finetuned] No errors found in test set!")
+        plt.axis("off")
+
+    plt.suptitle(
+        f"Finetuned Top {n_display} Most Confident Incorrect Predictions",
+        fontsize=16,
+    )
+    plt.figtext(
+        0.5,
+        0.92,
+        "(Note: The number in parenthesis is the prediction confidence)",
+        ha="center",
+        fontsize=12,
+        color="gray",
+    )
+    plt.savefig(
+        FIGURES_DL_DIR / f"finetuned_top_{n_display}_errors.png",
+        bbox_inches="tight",
+        dpi=DPI,
+    )
+    plt.show()
+else:
+    logger.info("[Finetuned] No errors found in test set!")
 
 # %% [markdown]
 # > continue here
@@ -1138,65 +1144,61 @@ if ft_ckpt_paths:
 # #### Finetuned Model Interpretability (Grad-CAM)
 
 # %%
-if ft_ckpt_paths:
-    target_layer = ft_model.feature_extractor.backbone.conv_head
-    lgc = LayerGradCam(ft_model, target_layer)
+target_layer = ft_model.feature_extractor.backbone.conv_head
+lgc = LayerGradCam(ft_model, target_layer)
 
-    num_samples = 5
-    num_classes = len(dm.classes)
-    plt.figure(figsize=(20, 4 * num_classes))
-    np.random.seed(DEFAULT_SEED)
+num_samples = 5
+num_classes = len(dm.classes)
+plt.figure(figsize=(20, 4 * num_classes))
+np.random.seed(DEFAULT_SEED)
 
-    plot_idx = 1
-    for class_idx in range(num_classes):
-        class_name = dm.classes[class_idx]
-        all_class_indices = np.where(ft_targets == class_idx)[0]
+plot_idx = 1
+for class_idx in range(num_classes):
+    class_name = dm.classes[class_idx]
+    all_class_indices = np.where(ft_targets == class_idx)[0]
 
-        n = min(len(all_class_indices), num_samples)
-        selected_indices = np.random.choice(all_class_indices, n, replace=False)
+    n = min(len(all_class_indices), num_samples)
+    selected_indices = np.random.choice(all_class_indices, n, replace=False)
 
-        for idx in selected_indices:
-            img, label = pooled_dataset[idx]
-            input_tensor = img.unsqueeze(0).to(device)
+    for idx in selected_indices:
+        img, label = pooled_dataset[idx]
+        input_tensor = img.unsqueeze(0).to(device)
 
-            attribution = lgc.attribute(input_tensor, target=label)
-            heatmap = attribution.squeeze().cpu().detach().numpy()
-            heatmap = np.maximum(heatmap, 0)
-            if heatmap.max() > 0:
-                heatmap /= heatmap.max()
+        attribution = lgc.attribute(input_tensor, target=label)
+        heatmap = attribution.squeeze().cpu().detach().numpy()
+        heatmap = np.maximum(heatmap, 0)
+        if heatmap.max() > 0:
+            heatmap /= heatmap.max()
 
-            img_disp = img.permute(1, 2, 0).numpy()
-            img_disp = (
-                img_disp * np.array([0.229, 0.224, 0.225])
-                + np.array([0.485, 0.456, 0.406])
-            ).clip(0, 1)
+        img_disp = img.permute(1, 2, 0).numpy()
+        img_disp = (
+            img_disp * np.array([0.229, 0.224, 0.225]) + np.array([0.485, 0.456, 0.406])
+        ).clip(0, 1)
 
-            h, w = img_disp.shape[:2]
-            heatmap_upsampled = zoom(
-                heatmap, (h / heatmap.shape[0], w / heatmap.shape[1])
-            )
+        h, w = img_disp.shape[:2]
+        heatmap_upsampled = zoom(heatmap, (h / heatmap.shape[0], w / heatmap.shape[1]))
 
-            plt.subplot(num_classes, num_samples, plot_idx)
-            plt.imshow(img_disp)
-            plt.imshow(heatmap_upsampled, cmap="jet", alpha=0.4)
-            if (plot_idx - 1) % num_samples == 0:
-                plt.ylabel(class_name, fontsize=14, fontweight="bold")
+        plt.subplot(num_classes, num_samples, plot_idx)
+        plt.imshow(img_disp)
+        plt.imshow(heatmap_upsampled, cmap="jet", alpha=0.4)
+        if (plot_idx - 1) % num_samples == 0:
+            plt.ylabel(class_name, fontsize=14, fontweight="bold")
 
-            plt.title(f"Conf: {ft_probs[idx, label]:.2f}")
-            plt.xticks([])
-            plt.yticks([])
-            plot_idx += 1
+        plt.title(f"Conf: {ft_probs[idx, label]:.2f}")
+        plt.xticks([])
+        plt.yticks([])
+        plot_idx += 1
 
-        plot_idx += num_samples - n
+    plot_idx += num_samples - n
 
-    plt.suptitle(
-        "Finetuned Grad-CAM Heatmaps on Sample Jute Leaf Disease Images",
-        fontsize=20,
-        y=1.02,
-    )
-    plt.tight_layout()
-    plt.savefig(FIGURES_DL_DIR / "finetuned_grad_cam.png", bbox_inches="tight", dpi=DPI)
-    plt.show()
+plt.suptitle(
+    "Finetuned Grad-CAM Heatmaps on Sample Jute Leaf Disease Images",
+    fontsize=20,
+    y=1.02,
+)
+plt.tight_layout()
+plt.savefig(FIGURES_DL_DIR / "finetuned_grad_cam.png", bbox_inches="tight", dpi=DPI)
+plt.show()
 
 # %% [markdown]
 # > continue here
