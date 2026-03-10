@@ -305,14 +305,16 @@ for dr in dr_rates:
         color=dr_colors[dr],
     )
 
-ax[0].set_title("Training and Validation Loss across Dropout Rates (MobileNet V2 with DR 0.1)")
+ax[0].set_title(
+    "Training and Validation Loss across Dropout Rates (MobileNet V2 with DR 0.1)"
+)
 ax[0].set_xlabel("Epoch")
 ax[0].set_ylabel("Loss")
 ax[0].legend()
 ax[0].grid(True, alpha=0.3)
 
 ax[1].set_title(
-    "Training and Validation Accuracy across Dropout Rates (MobileNet V2 with DR 0.1)"
+    "Training and Validation Accuracy across Dropout Rates\n(MobileNet V2 with DR 0.1)"
 )
 ax[1].set_xlabel("Epoch")
 ax[1].set_ylabel("Accuracy")
@@ -396,7 +398,7 @@ cm_pivot = df_cm.pivot(
 
 plt.figure(figsize=(10, 8))
 sns.heatmap(cm_pivot, annot=True, fmt="g", cmap="Blues", cbar=False)
-plt.title("Baseline MobileNet V2 Confusion Matrix")
+plt.title("Baseline Confusion Matrix (MobileNet V2 with DR 0.1)")
 plt.ylabel("Actual Class")
 plt.xlabel("Predicted Class")
 plt.xticks(rotation=45, ha="right")
@@ -564,7 +566,11 @@ if len(wrong_indices) > 0:
         )
         plt.axis("off")
 
-    plt.suptitle(f"Top {n_display} Most Confident Incorrect Predictions", fontsize=16)
+    plt.suptitle(
+        f"Top {n_display} Most Confident Incorrect Predictions\n"
+        "(MobileNet V2 with DR 0.1)",
+        fontsize=16,
+    )
     plt.figtext(
         0.5,
         0.92,
@@ -653,7 +659,7 @@ leg1 = plt.legend(handles=split_legend, loc="lower left", title="Splits")
 plt.gca().add_artist(leg1)
 plt.legend(loc="upper right", title="Classes", ncol=2)
 
-plt.title("t-SNE Visualization of Jute Leaf Data")
+plt.title("t-SNE Visualization of Jute Leaf Data (MobileNet V2 with DR 0.1)")
 plt.xlabel("t-SNE 1")
 plt.ylabel("t-SNE 2")
 plt.savefig(FIGURES_DL_DIR / "tsne.png", bbox_inches="tight", dpi=DPI)
@@ -709,7 +715,7 @@ leg1 = plt.legend(handles=split_legend, loc="lower left", title="Splits")
 plt.gca().add_artist(leg1)
 plt.legend(loc="upper right", title="Classes", ncol=2)
 
-plt.title("UMAP Visualization of Jute Leaf Data")
+plt.title("UMAP Visualization of Jute Leaf Data (MobileNet V2 with DR 0.1)")
 plt.xlabel("UMAP 1")
 plt.ylabel("UMAP 2")
 plt.savefig(FIGURES_DL_DIR / "umap.png", bbox_inches="tight", dpi=DPI)
@@ -781,7 +787,10 @@ for class_idx in range(num_classes):
     plot_idx += num_samples - n
 
 plt.suptitle(
-    "Grad-CAM Heatmaps on Sample Jute Leaf Disease Images", fontsize=20, y=1.02
+    "Baseline Grad-CAM Heatmaps on Sample Jute Leaf Disease Images\n"
+    "(MobileNet V2 with DR 0.1)",
+    fontsize=20,
+    y=1.02,
 )
 plt.tight_layout()
 plt.savefig(FIGURES_DL_DIR / "grad_cam.png", bbox_inches="tight", dpi=DPI)
@@ -845,9 +854,16 @@ df_ft["Learning Rate"] = df_ft["Experiment"].apply(extract_lr)
 df_ft = df_ft.sort_values("Learning Rate", ascending=False)
 
 plt.figure(figsize=(10, 6))
-ax = sns.barplot(data=df_ft, x="Learning Rate", y="test_acc", palette="Oranges_r")
+ax = sns.barplot(
+    data=df_ft,
+    x="Learning Rate",
+    y="test_acc",
+    hue="Learning Rate",
+    palette="Oranges_r",
+    legend=False,
+)
 plt.ylim(0.85, 0.95)
-plt.title("Test Accuracy across Finetuning Learning Rates")
+plt.title("Test Accuracy across Finetuning Learning Rates (MobileNet V2 with DR 0.1)")
 plt.xlabel("Learning Rate")
 plt.ylabel("Test Accuracy")
 plt.grid(axis="y", linestyle="--", alpha=0.7)
@@ -971,13 +987,15 @@ ft_cm_pivot = df_ft_cm.pivot(
 fig, axes = plt.subplots(1, 2, figsize=(18, 8))
 
 sns.heatmap(cm_pivot, annot=True, fmt="g", cmap="Blues", cbar=False, ax=axes[0])
-axes[0].set_title("Part 1: Baseline Confusion Matrix")
+axes[0].set_title("Baseline Confusion Matrix (MobileNet V2 with DR 0.1)")
 axes[0].set_ylabel("Actual Class")
 axes[0].set_xlabel("Predicted Class")
 axes[0].tick_params(axis="x", rotation=45)
 
 sns.heatmap(ft_cm_pivot, annot=True, fmt="g", cmap="Oranges", cbar=False, ax=axes[1])
-axes[1].set_title("Part 2: Finetuned Confusion Matrix (LR=0.01)")
+axes[1].set_title(
+    "Finetuned Confusion Matrix (MobileNet V2 with DR 0.1, LR 0.01)"
+)
 axes[1].set_ylabel("Actual Class")
 axes[1].set_xlabel("Predicted Class")
 axes[1].tick_params(axis="x", rotation=45)
@@ -1106,7 +1124,8 @@ if len(wrong_indices) > 0:
         plt.axis("off")
 
     plt.suptitle(
-        f"Finetuned Top {n_display} Most Confident Incorrect Predictions",
+        f"Top {n_display} Most Confident Incorrect Predictions\n"
+        "(MobileNet V2 with DR 0.1, LR 0.01)",
         fontsize=16,
     )
     plt.figtext(
@@ -1183,7 +1202,8 @@ for class_idx in range(num_classes):
     plot_idx += num_samples - n
 
 plt.suptitle(
-    "Finetuned Grad-CAM Heatmaps on Sample Jute Leaf Disease Images",
+    "Finetuned Grad-CAM Heatmaps on Sample Jute Leaf Disease Images\n"
+    "(MobileNet V2 with DR 0.1, LR 0.01)",
     fontsize=20,
     y=1.02,
 )
