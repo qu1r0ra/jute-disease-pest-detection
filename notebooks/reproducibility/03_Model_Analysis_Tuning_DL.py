@@ -513,9 +513,11 @@ splits = np.array(all_splits)
 
 # %% [markdown]
 # #### Top Confident Errors
+#
+# Let's visualize the model's top confident errors to analyze the images and classes it struggles with.
 
 # %%
-TOP_K = 10
+TOP_K = 20
 is_wrong = preds != targets
 wrong_indices = np.where(is_wrong)[0]
 
@@ -576,21 +578,29 @@ else:
     logger.info("No errors found in test set!")
 
 # %% [markdown]
-# > continue here
-#
 # Some insights:
-# - **The "Data-Level Ceiling"**: Label Ambiguity. Many Jute leaves in our dataset exhibit symptoms of **multiple classes simultaneously** (e.g., both Mosaic and Cercospora). In our current **Single-Label Multiclass** setup, the model is forced to choose one, and is penalized for recognizing features of the other.
-# - ...
+# - 11 of the top 20 most confident incorrect predictions were _Mosaic_ misclassified as _Cercospora Leaf Spot_, while 2 were _Cercospora Leaf Spot_ misclassified as _Mosaic_. 
+#   - This is likely caused by the visual similarity of spots present in both classes, which is possibly why the model was greatly confused between them.
+#   - From a human standpoint, it is also pretty difficult to distinguish between the two diseases given low-resolution images of them.
+#     - Admittedly, we are not experts in jute leaf diseases, so we can't tell for sure whether jute leaf spots can be attributed solely to either of the two. If anything, the _Mosaic_ disease causes the leaf to turn yellow or gold, which can be a more reliable indicator of it. It may be suggestive of the model focusing too much on the spots rather than the yellowing of the leaves.
+#   - Moreover, it's possible for a jute leaf to have multiple diseases and for an image to contain multiple jute leaves. Thus, it may be better approaching the dataset as a multi-label or an object detection problem, rather than multi-class.
+#     - If we make it multi-label, then we will need expert validation to ensure that an image truly exhibits multiple diseases.
+#     - If we make it an object detection problem, then we will also need bounding boxes and more expert validation.
+#     - Unfortunately, these approaches are beyond the scope of our project, so we will be sticking with the multi-class approach.
+# - The 6th most confident incorrect prediction appears to focus on what appears to be a case of _Stem Rot_, but the image is somehow labeled as _Dieback_.
+#   - This is caused by either incorrect labeling (where it should actually be Stem Rot) or center cropping from the image augmentations, which cropped away the leaf intended to be focused on.
+# - There are 3 confusions between _General Damage_ and _Healthy_.
+#   - Notably, these images have multiple visible leaves in the background. Ideally, we should have included blurring out irrelevant parts an image's background in its preprocessing so the model doesn't have to deal with noise. That may be what caused the model to misclassify some images.
 
 # %% [markdown]
 # ### 1C. Latent Space Analysis
 #
-# Some interesting stuff ahead! Let's perform **t-SNE** and **UMAP** embedding analyses to visualize our data in lower dimensions, and inspect the top confident errors to determine whether the model struggles with specific classes.
+# Some interesting stuff! Here, we will visualize our high-dimensional Jute leaf data in two dimensions with **t-SNE** and **UMAP**. (add a brief comparison of the two techniques)
 
 # %% [markdown]
 # ### T-distributed Stochastic Neighbor Embedding (t-SNE)
 #
-# > brief description
+# For t-SNE, we chose (insert chosen parameters and brief explanation).
 
 # %%
 tsne = TSNE(n_components=2, perplexity=30, random_state=DEFAULT_SEED)
@@ -649,7 +659,7 @@ plt.show()
 # %% [markdown]
 # ### Uniform Manifold Approximation and Projection (UMAP)
 #
-# > brief description
+# For UMAP, we chose (insert chosen parameters and brief explanation).
 
 # %%
 reducer = umap.UMAP(
