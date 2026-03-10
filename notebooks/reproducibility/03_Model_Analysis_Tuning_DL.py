@@ -398,7 +398,7 @@ cm_pivot = df_cm.pivot(
 
 plt.figure(figsize=(10, 8))
 sns.heatmap(cm_pivot, annot=True, fmt="g", cmap="Blues", cbar=False)
-plt.title("Baseline Confusion Matrix (MobileNet V2 with DR 0.1)")
+plt.title("Confusion Matrix (MobileNet V2 with DR 0.1)")
 plt.ylabel("Actual Class")
 plt.xlabel("Predicted Class")
 plt.xticks(rotation=45, ha="right")
@@ -787,7 +787,7 @@ for class_idx in range(num_classes):
     plot_idx += num_samples - n
 
 plt.suptitle(
-    "Baseline Grad-CAM Heatmaps on Sample Jute Leaf Disease Images\n"
+    "Grad-CAM Heatmaps on Sample Jute Leaf Disease Images\n"
     "(MobileNet V2 with DR 0.1)",
     fontsize=20,
     y=1.02,
@@ -987,14 +987,14 @@ ft_cm_pivot = df_ft_cm.pivot(
 fig, axes = plt.subplots(1, 2, figsize=(18, 8))
 
 sns.heatmap(cm_pivot, annot=True, fmt="g", cmap="Blues", cbar=False, ax=axes[0])
-axes[0].set_title("Baseline Confusion Matrix (MobileNet V2 with DR 0.1)")
+axes[0].set_title("Confusion Matrix (MobileNet V2 with DR 0.1)")
 axes[0].set_ylabel("Actual Class")
 axes[0].set_xlabel("Predicted Class")
 axes[0].tick_params(axis="x", rotation=45)
 
 sns.heatmap(ft_cm_pivot, annot=True, fmt="g", cmap="Oranges", cbar=False, ax=axes[1])
 axes[1].set_title(
-    "Finetuned Confusion Matrix (MobileNet V2 with DR 0.1, LR 0.01)"
+    "Confusion Matrix (MobileNet V2 with DR 0.1, LR 0.01)"
 )
 axes[1].set_ylabel("Actual Class")
 axes[1].set_xlabel("Predicted Class")
@@ -1202,7 +1202,7 @@ for class_idx in range(num_classes):
     plot_idx += num_samples - n
 
 plt.suptitle(
-    "Finetuned Grad-CAM Heatmaps on Sample Jute Leaf Disease Images\n"
+    "Grad-CAM Heatmaps on Sample Jute Leaf Disease Images\n"
     "(MobileNet V2 with DR 0.1, LR 0.01)",
     fontsize=20,
     y=1.02,
