@@ -386,30 +386,30 @@ if not cmat_path.exists():
 with open(cmat_path) as f:
     cmat_data = json.load(f)
 
-    df_cm = pd.DataFrame(cmat_data["data"], columns=cmat_data["columns"])
-    cm_pivot = df_cm.pivot(
-        index="Actual", columns="Predicted", values="nPredictions"
-    ).fillna(0)
+df_cm = pd.DataFrame(cmat_data["data"], columns=cmat_data["columns"])
+cm_pivot = df_cm.pivot(
+    index="Actual", columns="Predicted", values="nPredictions"
+).fillna(0)
 
-    plt.figure(figsize=(10, 8))
-    sns.heatmap(cm_pivot, annot=True, fmt="g", cmap="Blues", cbar=False)
-    plt.title("Baseline MobileNet V2 Confusion Matrix")
-    plt.ylabel("Actual Class")
-    plt.xlabel("Predicted Class")
-    plt.xticks(rotation=45, ha="right")
-    plt.yticks(rotation=0)
+plt.figure(figsize=(10, 8))
+sns.heatmap(cm_pivot, annot=True, fmt="g", cmap="Blues", cbar=False)
+plt.title("Baseline MobileNet V2 Confusion Matrix")
+plt.ylabel("Actual Class")
+plt.xlabel("Predicted Class")
+plt.xticks(rotation=45, ha="right")
+plt.yticks(rotation=0)
 
-    FIGURES_DL_DIR.mkdir(parents=True, exist_ok=True)
-    plt.savefig(
-        FIGURES_DL_DIR / "part1_confusion_matrix.png",
-        bbox_inches="tight",
-        dpi=DPI,
-    )
-    plt.show()
+FIGURES_DL_DIR.mkdir(parents=True, exist_ok=True)
+plt.savefig(
+    FIGURES_DL_DIR / "part1_confusion_matrix.png",
+    bbox_inches="tight",
+    dpi=DPI,
+)
+plt.show()
 
-    print("Classification Metrics by Class")
-    df_metrics = get_cm_metrics(cm_pivot)
-    display(df_metrics.round(4))
+print("Classification Metrics by Class")
+df_metrics = get_cm_metrics(cm_pivot)
+display(df_metrics.round(4))
 
 # %% [markdown]
 # Some insights:
