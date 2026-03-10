@@ -244,7 +244,7 @@ display(
 # %% [markdown]
 # #### Loss and Accuracy Curves
 #
-# Before inspecting our final champion configuration, let's visualize how the Dropout Rate (DR) impacts the validation loss and accuracy curves of the Level 1 ImageNet MobileNetV2 models. We'll compare DR 0.0, 0.1, and 0.2 to see its regularization effect.
+# Let's analyze the training and validation loss and accuracy curves of the baseline MobileNetV2. We'll compare DR 0.0, 0.1, and 0.2 to also see its regularization effect.
 
 # %%
 dr_rates = ["0.0", "0.1", "0.2"]
@@ -401,7 +401,7 @@ plt.yticks(rotation=0)
 
 FIGURES_DL_DIR.mkdir(parents=True, exist_ok=True)
 plt.savefig(
-    FIGURES_DL_DIR / "part1_confusion_matrix.png",
+    FIGURES_DL_DIR / "baseline_confusion_matrix.png",
     bbox_inches="tight",
     dpi=DPI,
 )
@@ -413,7 +413,11 @@ display(df_metrics.round(4))
 
 # %% [markdown]
 # Some insights:
-# - a
+# - The model performed pretty well classifying jute leaves that are _Healthy_ and those with _Dieback_, _General Damage_, and _Stem Rot_ diseases, achieving accuracies of at least 95%.
+# - The model appears to struggle classifying _Mosaic_ and _Cercospora Leaf Spot_ diseases, both having two of the lowest accuracies and F1-Scores. We can also see from the confusion matrix that the model appears to struggle distinguishing between the two, as 9 _Mosaic_ images were misclassified as _Cercorposa Leaf Spot_ while 6 _Cercorposa Leaf Spot_ images were misclassified as _Mosaic_. This is significantly greater than every other disease pair.
+# - The model misclassified 8 _Healthy_ jute leaves as _General Damage_, relatively higher compared to other classes it misclassified _Healthy_ leaves as (1 for Cercospora Leaf Spot, 2 for Mosaic). This is another possible source of confusion for the model.
+#
+# We can delve deeper into these phenomenon in the next visualizations.
 
 # %% [markdown]
 # #### Model Inference Setup
