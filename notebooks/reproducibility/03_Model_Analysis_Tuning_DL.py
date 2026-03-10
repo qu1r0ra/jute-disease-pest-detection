@@ -354,19 +354,23 @@ cmat_path = (
 
 def get_cm_metrics(cm_df):
     classes = cm_df.index
+    total_samples = cm_df.values.sum()
     metrics = []
     for cls in classes:
         tp = cm_df.loc[cls, cls] if cls in cm_df.columns else 0
         fn = cm_df.loc[cls, :].sum() - tp
         fp = cm_df.loc[:, cls].sum() - tp if cls in cm_df.columns else 0
+        tn = total_samples - (tp + fp + fn)
 
         p = tp / (tp + fp) if (tp + fp) > 0 else 0
         r = tp / (tp + fn) if (tp + fn) > 0 else 0
         f1 = 2 * p * r / (p + r) if (p + r) > 0 else 0
+        acc = (tp + tn) / total_samples if total_samples > 0 else 0
 
         metrics.append(
             {
                 "Class": cls,
+                "Accuracy": acc,
                 "Precision": p,
                 "Recall": r,
                 "F1-Score": f1,
