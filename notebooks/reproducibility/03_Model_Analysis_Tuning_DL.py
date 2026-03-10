@@ -237,7 +237,7 @@ display(
 # %% [markdown]
 # Some insights:
 # - Training on 512x512 pixel images appears to lead to worse performance compared to training on 256x256 pixel images.
-# - A dropout rate of 0.1 appears to lead to a higher test F1 compared to their 0.0 counterparts, though likely statistically insignificant given our sample. This may suggest that slightly increased regularization may improve our model's performance on the dataset.
+# - A dropout rate of 0.1 appears to lead to a higher test F1 compared to their 0.0 counterparts, though likely statistically insignificant given our sample. This may suggest that slightly increased regularization may improve our model's performance on unseen data.
 #
 # Hence, our initial hypothesis of training on higher-resolution images is disproven, though not in a formal statistical manner.
 
@@ -253,37 +253,66 @@ dr_colors = {"0.0": "tab:blue", "0.1": "tab:green", "0.2": "tab:orange"}
 fig, ax = plt.subplots(1, 2, figsize=(15, 5))
 
 for dr in dr_rates:
-    history_dir = LOGS_DIR / "phase1_transfer_grid" / f"mobilenet_v2-l1_imagenet-dr_{dr}"
+    history_dir = (
+        LOGS_DIR / "phase1_transfer_grid" / f"mobilenet_v2-l1_imagenet-dr_{dr}"
+    )
     history_files = list(history_dir.glob("*-metrics.csv"))
-    
-    if history_files:
-        dfs = [pd.read_csv(f) for f in history_files]
-        hist = pd.concat(dfs, ignore_index=True)
-        agg_dict = {}
-        for col in hist.columns:
-            if "loss" in col:
-                agg_dict[col] = "mean"
-            elif "acc" in col or "f1" in col:
-                agg_dict[col] = "max"
-        
-        epoch_data = (
-            hist.groupby("epoch")
-            .agg(agg_dict)
-            .dropna(subset=["val_loss"])
-        )
-        
-        ax[0].plot(epoch_data.index, epoch_data["val_loss"], label=f"DR {dr}", color=dr_colors[dr])
-        ax[1].plot(epoch_data.index, epoch_data["val_acc"], label=f"DR {dr}", color=dr_colors[dr])
 
-ax[0].set_title("Validation Loss Comparison across Dropout Rates")
+    if not history_files:
+        raise FileNotFoundError(f"No metrics found for DR {dr} at {history_dir}")
+
+    dfs = [pd.read_csv(f) for f in history_files]
+    hist = pd.concat(dfs, ignore_index=True)
+    agg_dict = {}
+    for col in hist.columns:
+        if "loss" in col:
+            agg_dict[col] = "mean"
+        elif "acc" in col or "f1" in col:
+            agg_dict[col] = "max"
+
+    epoch_data = (
+        hist.groupby("epoch").agg(agg_dict).dropna(subset=["train_loss", "val_loss"])
+    )
+
+    ax[0].plot(
+        epoch_data.index,
+        epoch_data["train_loss"],
+        label=f"Train DR {dr}",
+        color=dr_colors[dr],
+        linestyle="--",
+        alpha=0.6,
+    )
+    ax[0].plot(
+        epoch_data.index,
+        epoch_data["val_loss"],
+        label=f"Val DR {dr}",
+        color=dr_colors[dr],
+    )
+
+    ax[1].plot(
+        epoch_data.index,
+        epoch_data["train_acc"],
+        label=f"Train DR {dr}",
+        color=dr_colors[dr],
+        linestyle="--",
+        alpha=0.6,
+    )
+    ax[1].plot(
+        epoch_data.index,
+        epoch_data["val_acc"],
+        label=f"Val DR {dr}",
+        color=dr_colors[dr],
+    )
+
+ax[0].set_title("Training & Validation Loss across Dropout Rates")
 ax[0].set_xlabel("Epoch")
-ax[0].set_ylabel("Validation Loss")
+ax[0].set_ylabel("Loss")
 ax[0].legend()
 ax[0].grid(True, alpha=0.3)
 
-ax[1].set_title("Validation Accuracy Comparison across Dropout Rates")
+ax[1].set_title("Training & Validation Accuracy across Dropout Rates")
 ax[1].set_xlabel("Epoch")
-ax[1].set_ylabel("Validation Accuracy")
+ax[1].set_ylabel("Accuracy")
 ax[1].legend()
 ax[1].grid(True, alpha=0.3)
 
@@ -292,12 +321,11 @@ plt.savefig(FIGURES_DL_DIR / "dropout_impact_curves.png", bbox_inches="tight", d
 plt.show()
 
 # %% [markdown]
-# > continue here
-#
 # Some insights:
-# - ...
-#
-# #### Loss and Accuracy Curves (Champion Model)
+# - a
+
+# %% [markdown]
+# #### Loss and Accuracy Curves of the Best Baseline Model
 #
 # Now let's analyze how training went for our chosen champion MobileNet model (`DR=0.1`) by exclusively inspecting its training and validation split curves.
 
