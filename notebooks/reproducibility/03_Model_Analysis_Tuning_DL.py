@@ -595,12 +595,12 @@ else:
 # %% [markdown]
 # ### 1C. Latent Space Analysis
 #
-# Some interesting stuff! Here, we will visualize our high-dimensional Jute leaf data in two dimensions with **t-SNE** and **UMAP**. (add a brief comparison of the two techniques)
+# Some interesting stuff! Here, we will visualize our high-dimensional Jute leaf data in two dimensions with **t-SNE** and **UMAP**. Put simply, t-SNE is better at preserving local structures, while UMAP is generally faster and better at preserving global structure.
 
 # %% [markdown]
 # ### T-distributed Stochastic Neighbor Embedding (t-SNE)
 #
-# For t-SNE, we chose (insert chosen parameters and brief explanation).
+# For t-SNE, we went with `perplexity=30` (recommended default).
 
 # %%
 tsne = TSNE(n_components=2, perplexity=30, random_state=DEFAULT_SEED)
@@ -659,7 +659,7 @@ plt.show()
 # %% [markdown]
 # ### Uniform Manifold Approximation and Projection (UMAP)
 #
-# For UMAP, we chose (insert chosen parameters and brief explanation).
+# For UMAP, we went with `n_neighbors=15` and `min_dist=0.1` (recommended defaults by `umap-learn`). `n_neighbors` controls how UMAP balances local versus global structure (similar to perplexity), while `min_dist` determines how tightly UMAP is allowed to pack points together.
 
 # %%
 reducer = umap.UMAP(
@@ -1194,4 +1194,4 @@ if ft_ckpt_paths:
 #
 # [1] Coenen, A., & Pearce, A. (2019, December 5). _Understanding UMAP_. <https://pair-code.github.io/understanding-umap/>
 #
-# [2] Orucu, A. (2021, October 29). _Understanding t-SNE by implementation_. Towards Data Science. <https://towardsdatascience.com/understanding-t-sne-by-implementing-2baf3a987ab3/>
+# [2] Wattenberg, M., Viégas, F., & Johnson, I. (2016). How to use t-SNE effectively. *Distill*, 1(10). <https://doi.org/10.23915/distill.00002>
