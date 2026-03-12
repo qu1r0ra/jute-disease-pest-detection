@@ -1,3 +1,19 @@
+%%%%% Papers %%%%%
+
+@inproceedings{haqueAdvancementsJuteLeaf2024,
+  title = {Advancements in {{Jute Leaf Disease Detection}}: {{A Comprehensive Study Utilizing Machine Learning}} and {{Deep Learning Techniques}}},
+  shorttitle = {Advancements in {{Jute Leaf Disease Detection}}},
+  booktitle = {2024 {{IEEE International Conference}} on {{Power}}, {{Electrical}}, {{Electronics}} and {{Industrial Applications}} ({{PEEIACON}})},
+  author = {Haque, Rezaul and Miah, Md Miraz and Sultana, Shayma and Fardin, Hasib and Noman, Abdullah Al and {Al-Sakib}, Abdullah and Hasan, Md Kamrul and Rafy, Al and Shihabur, Rahman Md and Rahman, Shafiur},
+  year = 2024,
+  month = sep,
+  pages = {248--253},
+  doi = {10.1109/PEEIACON63629.2024.10800378},
+  urldate = {2026-01-24},
+  abstract = {Detecting diseases in jute leaves is difficult due to the variability in how the diseases appear. Manually identifying these diseases is challenging because it requires expert knowledge and visual inspections take a lot of time. Machine Learning (ML) offers a promising solution to these challenges by automating the detection process. However, research in this area is limited due to the lack of specific datasets. This study aims to address this by creating a comprehensive dataset of 10,800 high-quality images of jute leaf diseases. The main goal is to develop a robust system for classifying jute leaves into three categories: Yellow Mosaic, Powdery Mildew, and Healthy. Our methodology involved extensive image preprocessing, including resizing and various augmentation techniques, to enhance the dataset's diversity and ensure model robustness. We trained various ML and Deep Learning (DL) models and conducted a comparative analysis of their performance. Additionally, we compared our approach with the state-of-the-art methods. The results showed that DL models, particularly Inception V3, achieved an outstanding accuracy of 99.98\%, compared to 89.75\% for Random Forest (RF). This highlights the potential of DL techniques in improving the accuracy of jute leaf disease detection. Our findings contribute to better disease management strategies and increased productivity in jute cultivation.},
+  keywords = {Accuracy,Analytical models,crop management,Deep learning,Diseases,leaf disease,machine learning,plant pathology,Radio frequency,Random forests,Real-time systems,Robustness,Sustainable agriculture,Transfer learning,Visualization},
+}
+
 %%%%% Software %%%%%
 
 % Albumentations
@@ -205,4 +221,83 @@
     author = {Biewald, Lukas},
 }
 
-%%%%% Non-Software %%%%%
+%%%%% Datasets %%%%%
+
+@article{islamComprehensiveImageDataset2026,
+  title = {A Comprehensive Image Dataset of Jute Diseases},
+  author = {Islam, Md. Masudul and Sheikh, Md. Ripon},
+  year = 2026,
+  month = feb,
+  journal = {Data in Brief},
+  volume = {64},
+  pages = {112334},
+  issn = {2352-3409},
+  doi = {10.1016/j.dib.2025.112334},
+  urldate = {2026-01-23},
+  abstract = {This Data Descriptor presents the Jute Diseases Image Dataset; a curated collection of 1390 high-resolution images aimed at supporting the development of machine learning models for timely identification and accurate diagnosis of jute (Corchorus) plant diseases. The dataset is categorized into five classes: Dieback (300), Holed (300), Mosaic (240), Stem Soft Rot (270), and Fresh (280) representing healthy leaves. Images were captured under varied natural lighting and directional conditions across diverse jute cultivation areas to enhance model generalizability. A rigorous pre-processing pipeline was applied, including uniform resizing to 1024 \texttimes{} 1024 pixels and removal of duplicate images to ensure data integrity. The dataset is organized into two components: a raw, pre-processed set and an augmented train-test split version, enabling immediate use in machine learning workflows. Additionally, Grad-CAM and Guided Grad-CAM techniques were applied to sample images to visualize and validate model attention on disease-relevant regions. This resource addresses the lack of labelled jute disease imagery and supports timely disease management, particularly for stakeholders in Bangladesh and other major jute-producing regions.},
+  keywords = {Agriculture,Computer Vision,Crop disease,Image Dataset,Jute dataset,Jute disease},
+  file = {/home/qu1r0ra/Zotero/storage/CD8BWZIB/Islam and Sheikh - 2026 - A comprehensive image dataset of jute diseases.pdf;/home/qu1r0ra/Zotero/storage/KI7T7PUM/S2352340925010480.html}
+}
+
+@article{islamJuteLeafDisease2026,
+  title = {Jute {{Leaf Disease Classification Dataset}}},
+  author = {Islam, Md Rakibul and Naimur Rahman, Kazi Md},
+  year = 2026,
+  month = jan,
+  volume = {1},
+  publisher = {Mendeley Data},
+  doi = {10.17632/5294gb7b5p.1},
+  urldate = {2026-01-24},
+  abstract = {This dataset contains 900 images of jute leaves, organized into three folders: Cercospora Leaf Spot, Golden Mosaic disease, and Healthy Leaf. Each folder represents one class and can be directly used for image classification and machine learning tasks. The images were collected from real-world conditions and show clear visual differences between healthy and diseased leaves, such as spots, color changes, and mosaic patterns. This makes the dataset suitable for research in plant disease detection, computer vision, and deep learning. An official Verification and Approval Form (PDF) is included with the dataset. This document confirms the authenticity and accuracy of the data and approves its use for research and educational purposes. This dataset can be used for training, testing, and evaluating machine learning models for agricultural and plant health applications.},
+  langid = {english},
+}
+
+@article{jannatRealtimeJuteLeaf2025,
+  title = {Real-Time Jute Leaf Disease Classification Using an Explainable Lightweight {{CNN}} via a Supervised and Semi-Supervised Self-Training Approach},
+  author = {Jannat, Meftahul and Uddin, Md Shahab and Hasan, Mohammad Asif and Alam, Md Saimun and Paul, Avijit and Chowdhury, Muhammad E. H. and Haider, Julfikar},
+  year = 2025,
+  month = oct,
+  journal = {Frontiers in Plant Science},
+  volume = {16},
+  publisher = {Frontiers},
+  issn = {1664-462X},
+  doi = {10.3389/fpls.2025.1647177},
+  urldate = {2026-02-05},
+  abstract = {IntroductionTimely detection of jute leaf diseases is vital for sustaining crop health and farmer livelihoods. Existing deep learning approaches often rely on large, annotated datasets, which are costly and time-consuming to produce.Methods and resultsTo address this challenge, a lightweight convolutional neural network integrated with a semi-supervised learning self-training framework was proposed to enable accurate classification with minimal labeled data. The model combines modified depthwise separable convolutions, an enhanced squeeze-and-excite block, and a modified mobile inverted bottleneck convolution block, achieving strong representational power with only 2.24M parameters (8.54 MB). On a self-collected dataset of jute leaf images across three classes (Cescospora leaf spot, golden mosaic, and healthy leaf), the proposed model achieved a best accuracy of 98.95\% under the supervised training with training, testing and validation split of 80:10:10. Remarkably, the model also attained a best accuracy of 97.89\% in the semi-supervised learning (SSL) setting with only 10\% labeled and 90\% unlabeled data, demonstrating that near-supervised performance can be maintained while substantially reducing the dependency on costly labeled datasets. The application of explainable AI method such as Grad-CAM provided interpretable visualizations of diseased regions, and deployment as a Flask-based web application demonstrated practical, real-time usability in resource-constrained agricultural environments.ConclusionThese results highlight the novelty of combining SSL with a lightweight CNN to deliver near-supervised performance, improved interpretability, and real-world applicability while substantially reducing the dependence on expert-labeled data.},
+  langid = {english},
+  keywords = {deep learning,grouped convolution,jute leaf disease,lightweight CNN,semi-supervised self-training,squeeze-and-excite},
+}
+
+@article{mridhaJutePlantLeaves2024,
+  title = {Jute {{Plant Leaves}}},
+  author = {Mridha, Mehedi Hasan},
+  year = 2024,
+  month = may,
+  volume = {1},
+  publisher = {Mendeley Data},
+  doi = {10.17632/z87b9hnkh7.1},
+  urldate = {2026-02-03},
+  abstract = {The "Jute Plant Leaves" dataset consists of high-quality RGB photos of jute plant leaves (Corchorus spp.) of Bangladesh. Jute is an economically significant crop grown for its fibrous stems, which are used in the manufacture of textiles, paper, and other items. The leaves of jute plants serve an important role in photosynthesis, nutritional intake, and plant health. The collection includes a variety of leaf properties such as form, color, texture, venation patterns, and physiological aspects. The "Jute Plant Leaves" dataset is useful to academics and practitioners in agriculture, botany, ecology, computer vision, and other domains. It is a valuable resource for researching the morphology, anatomy, physiology, and ecological relevance of jute leaves. Furthermore, the dataset can be used to create and test computer vision algorithms for leaf categorization, disease detection, growth tracking, and other purposes.},
+  langid = {english},
+}
+
+%%%%% Others %%%%%
+
+% t-SNE
+@article{wattenberg2016tsne,
+  author = {Wattenberg, Martin and Viégas, Fernanda and Johnson, Ian},
+  title = {How to Use t-SNE Effectively},
+  journal = {Distill},
+  year = {2016},
+  url = {http://distill.pub/2016/misread-tsne},
+  doi = {10.23915/distill.00002}
+}
+
+% UMAP
+@article{coenen2019umap,
+  author = {Coenen, Andy and Pearce, Adam},
+  title = {Understanding UMAP},
+  publisher = {Google PAIR},
+  year = {2019},
+  url = {https://pair-code.github.io/understanding-umap/}
+}
