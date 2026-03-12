@@ -832,7 +832,7 @@ for idx, n_neigh in enumerate(n_neighbors_list):
     ax.set_yticks([])
 
 fig.suptitle(
-    "UMAP Neighborhood Comparison (Eval Set Clusters)\n(MobileNet V2 with DR 0.1)",
+    "UMAP Neighborhood Comparison\n(MobileNet V2 with DR 0.1)",
     fontsize=20,
     y=1.02,
 )
