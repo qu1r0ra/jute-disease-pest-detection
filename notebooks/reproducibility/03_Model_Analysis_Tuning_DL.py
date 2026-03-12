@@ -701,7 +701,8 @@ for idx, perp in enumerate(perplexities):
         )
 
     ax.set_title(f"Perplexity = {perp}", fontsize=14)
-    ax.axis("off")
+    ax.set_xticks([])
+    ax.set_yticks([])
 
 fig.suptitle(
     "t-SNE Perplexity Comparison\n(MobileNet V2 with DR 0.1)",
