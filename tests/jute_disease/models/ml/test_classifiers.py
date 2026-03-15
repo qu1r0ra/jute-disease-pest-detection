@@ -2,6 +2,7 @@
 
 # ruff: noqa: N803, N806
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pytest
@@ -11,7 +12,6 @@ from jute_disease.models.ml import (
     KNearestNeighbors,
     LogisticRegression,
     RandomForest,
-    SklearnClassifier,
     SupportVectorMachine,
 )
 from jute_disease.utils.constants import DEFAULT_SEED
@@ -30,9 +30,7 @@ def xy() -> tuple[np.ndarray, np.ndarray]:
     "cls",
     [LogisticRegression, RandomForest, SupportVectorMachine, GaussianNaiveBayes],
 )
-def test_classifier_fit_predict(
-    cls: type[SklearnClassifier], xy: tuple[np.ndarray, np.ndarray]
-) -> None:
+def test_classifier_fit_predict(cls: Any, xy: tuple[np.ndarray, np.ndarray]) -> None:
     X, y = xy
     model = cls()
     model.fit(X, y)
@@ -45,9 +43,7 @@ def test_classifier_fit_predict(
     "cls",
     [LogisticRegression, RandomForest, SupportVectorMachine, GaussianNaiveBayes],
 )
-def test_classifier_predict_proba(
-    cls: type[SklearnClassifier], xy: tuple[np.ndarray, np.ndarray]
-) -> None:
+def test_classifier_predict_proba(cls: Any, xy: tuple[np.ndarray, np.ndarray]) -> None:
     X, y = xy
     model = cls()
     model.fit(X, y)

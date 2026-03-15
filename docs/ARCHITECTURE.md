@@ -78,7 +78,7 @@ Both pipelines are evaluated identically using a combined **Experiment Aggregati
 
 ### 7. Code Quality & Standards
 
-- **Type Safety**: The codebase adheres to strict type checking using modern Python 3.10+ syntax (e.g., `list[str] | None`).
+- **Type Safety**: The codebase adheres to strict type checking using modern Python 3.10+ syntax (e.g., `list[str] | None`). **Mypy is scoped to `src/` only**; the `notebooks/` directory is explicitly excluded to facilitate rapid prototyping and exploratory analysis without type-strictness overhead.
 - **Formatting**: Code is formatted and linted using `ruff` to ensure PEP 8 compliance.
 - **CLI Patterns**: Scripts follow the "Raise in Logic, Exit in Main" pattern to allow for programmatic re-use and unit testing of automation functions.
 - **Testing**: A comprehensive test suite (`tests/`) covers unit tests (logic verification) and slower integration tests (end-to-end pipeline).
