@@ -23,7 +23,7 @@ Welcome! This document provides crucial context, architectural design choices, a
 - **Modern Syntax Only**: Use the `|` operator for unions/optionals (e.g., `str | None` instead of `Optional[str]`).
 - **Built-in Generics**: Use `list[str]`, `dict[str, Any]`, `tuple[int, int]` instead of importing from the `typing` module (`List`, `Dict`, `Tuple`).
 - **Explicit Returns**: All public methods and functions MUST have an explicit return type. Functions returning nothing must be annotated with `-> None` (this includes all `pytest` test functions and Flask routes).
-- **No Type Ignores**: Avoid `# type: ignore`. If the linter complains, write explicit runtime assertions/checks (e.g., `assert foo is not None`) to satisfy the type checker.
+- **Minimal Type Ignores**: Avoid `# type: ignore`. If the linter complains, write explicit runtime assertions/checks (e.g., `assert foo is not None`). Exception: Suppressing errors for legacy third-party types where annotations are missing or broken (e.g., `db.Model` in `src/annotator/models.py`).
 
 ### 2.2. Code Quality & Formatting
 
@@ -57,7 +57,7 @@ Review [`ARCHITECTURE.md`](../ARCHITECTURE.md) for full details, but keep these 
 
 To prevent destructive actions and ensure a smooth workflow:
 
-1. **Dependencies**: **Do not** add new dependencies to `pyproject.toml` unless explicitly requested by the user. If an external library is needed to solve a problem, ask first.
+1. **Dependencies**: **Do not** add new dependencies to the `dependencies` list in `pyproject.toml` without permission. Development-only tools (e.g., linters, testing helpers) should be added to the `dev` dependency group using `uv add --dev`.
 2. **Data Directory**: **Do not** write scripts that manually delete or maliciously modify the `data/` directory. Rely on existing `split_data()` functions.
 3. **Training Execution**: Training pipelines (`make train-ml`, `make train-all-dl`) are resource-intensive. **Do not** execute these commands autonomously without user permission.
 4. **Configuration over Hardcoding**: For deep learning models, parameters should be adjusted in the YAML files located in `configs/`, not hardcoded in the `.py` files.
