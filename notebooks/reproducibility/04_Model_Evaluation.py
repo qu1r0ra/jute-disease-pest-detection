@@ -12,9 +12,9 @@
 # %% [markdown]
 # # Final Model Evaluation
 #
-# In `notebooks/reproducibility/02_` and `03_`, we pursued twin objectives: one focused on handcrafted feature extraction with Classical ML, and the other leveraging transfer learning on Deep Learning architectures. 
+# In `notebooks/reproducibility/02_` and `03_`, we pursued twin objectives: one focused on handcrafted feature extraction with Classical ML, and the other leveraging transfer learning on Deep Learning architectures.
 #
-# Here, those paths converge. We will take the definitive champion from the ML track and the ultimate champion from the DL track, and pit them against each other on the unseen hold-out **Test Set**. 
+# Here, those paths converge. We will take the definitive champion from the ML track and the ultimate champion from the DL track, and pit them against each other on the unseen hold-out **Test Set**.
 
 # %% [markdown]
 # ## 1. Final Model Champions
@@ -24,7 +24,7 @@
 # **Deep Learning Champion:**
 # - **Model:** MobileNetV2
 # - **Specs:** Level 1 (ImageNet), 256x256, 0.1 Dropout
-# - **Note:** As proven by our exhaustive learning rate grid search with extended early stopping patience, the model strictly caps at ~90% accuracy due to innate multi-label characteristics inside the dataset (i.e. leaves presenting multiple diseases concurrently while ground-truth labels force a single class). 
+# - **Note:** As proven by our exhaustive learning rate grid search with extended early stopping patience, the model strictly caps at ~90% accuracy due to innate multi-label characteristics inside the dataset (i.e. leaves presenting multiple diseases concurrently while ground-truth labels force a single class).
 #
 # **Classical ML Champion:**
 # - **Model:** ...

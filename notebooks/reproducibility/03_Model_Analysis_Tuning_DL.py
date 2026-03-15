@@ -584,7 +584,7 @@ else:
 
 # %% [markdown]
 # Some insights:
-# - 11 of the top 20 most confident incorrect predictions were _Mosaic_ misclassified as _Cercospora Leaf Spot_, while 2 were _Cercospora Leaf Spot_ misclassified as _Mosaic_. 
+# - 11 of the top 20 most confident incorrect predictions were _Mosaic_ misclassified as _Cercospora Leaf Spot_, while 2 were _Cercospora Leaf Spot_ misclassified as _Mosaic_.
 #   - This is likely caused by the visual similarity of spots present in both classes, which is possibly why the model was greatly confused between them.
 #   - From a human standpoint, it is also pretty difficult to distinguish between the two diseases given low-resolution images of them.
 #     - Admittedly, we are not experts in jute leaf diseases, so we can't tell for sure whether jute leaf spots can be attributed solely to either of the two. If anything, the _Mosaic_ disease causes the leaf to turn yellow or gold, which can be a more reliable indicator of it. It may be suggestive of the model focusing too much on the spots rather than the yellowing of the leaves.
